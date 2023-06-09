@@ -1753,3 +1753,801 @@
 - nested objects
 - supports arrays
 - supports multiline
+
+## Monitoring and Audit (CW, X-Ray, CloudTrail)
+- CloudWatch:
+	- metrics
+	- logs
+	- events
+	- alarms
+- X-Ray:
+	- troubleshooting app performance and errors
+	- distributed tracing of microservices
+- CloudTrail:
+	- internal monitoring of API calls being made to AWS
+	- audit changes to AWS resources by your users
+
+### CW Metrics
+- AWS CW provides metrics for every service in AWS
+- a metric is a variable to monitor
+- each metric belongs to a namespace
+- a dimention is an attribute of a metric
+- up to 30 dimensions per metric
+- metrics have timestamps
+- can create cloudwatch dashboards of metrics
+
+#### EC2 Metrics
+- by default metrics are submitted every 5 mins
+- detailed monitoring (extra cost) metrics are submitted every minute
+- detailed monitoring is helpful if you want to scale your ASG fatsre
+- EC2 memory usage is by default not pushed (must be submitted as a custom metric
+
+#### CW Custom metrics
+- use API call `PutMetricData`
+- `StorageResolution` API param can be set to 
+	- Standard (1 minute)
+	- High Res - 1/5/10/30 seconds = higher cost
+- the API accepts metric data points two weeks in the past and two hours in the future
+
+### CW Logs
+- log groups: arbitrary name, usually representing an app
+- log stream: instances within app/ log files/ containers
+- can define log expiration policies (never expire, 1 day to 10 years)
+- CW logs can send logs to
+	- S3 Export
+		- Log data can take up to 12 hours to become available for export
+		- API is `CreateExportTask`
+		- not near real-time or real-time
+	- Kinesis Data Streams
+	- Kinesis Data Firehose
+	- AWS Lambda
+	- OpenSearch
+- logs are encrypted by default
+- can setup KMS-based encryption with your own keys
+
+#### CW Logs Sources
+- SDK, CW Logs Agent, CW Unified Agent
+- Elasic Beanstalk: collection of logs from an app
+- ECS: container logs
+- Lambda: serverless logs
+- VPC Flow Logs
+- API Gateway
+- CloudTrail based on filter
+- Route53 DNS queries
+
+#### CW Logs Insights
+- for searching an analyzing log data within CW logs
+- provides a purpose-built query language
+	- automatically discovers fields from AWS services and JSON log events
+	- fetch desired event fields, filter based on conditions, calculate stats, sort events, limit number of events
+	- can save queries and add them to CW dashboards
+	- Can query multiple log groups in different AWS account
+	- it's a query engine (not a real-time engine)
+
+#### CW Logs Subscriptions
+- allow you to get real-time events from CW logs for processing and analysis
+- send to Kinesis Data Streams, Kinesis Data Firehose, or Lambda
+- Subscription Filter - decide which logs are filtered to your destination
+
+#### Logs Aggregation Multi-account and Multi-region
+- allow you to use subscription filters to ship logs from different regions/accounts to Data Streams or Firehose
+- Cross-Account Subscription filter
+	- in the sender account create a subscription filter
+	- in the recipient account:
+		- create a Destination Access Polict that allows the sender account `PutSubscriptionFilter` action on the subscription destination 
+		- create a cross account IAM Role with a `PutRecord` permission in the Kinesis data stream, and ensure the sender account can assume this role
+
+#### CW Logs for EC2
+- by default, no logs from your EC2 machine will go to CW
+	- can also be setup on prem
+- need to run a CW agent on EC2 to push the logs
+- make sure the IAM permissions on the EC2 instance
+
+
+##### CW Logs Agent and Unified Agent
+- CW logs agent
+	- "old" agent version
+	- only send logs
+- CW Unified Agent
+	- collect addtl system-level metrics
+	- collect logs to send to CW
+	- can centralize the config using SSM parameter store
+
+#### CW Logs Metric Filter
+- allows you to create metrics from logs based on filters and 3 (optional) dimenstions
+- do not retroactively publish metrics (only publish metric data for events *after* filter creation)
+- can create an alarm based on the CW Metric
+
+### CW Alarms
+- used to trigger notifications on any metrics
+- states:
+	- OK
+	- INSUFFICIENT_DATA
+	- ALARM
+- Period:
+	- length of time in seconds to evaluate the metric
+- to test alarms and condition, you can set the alarm state manually using `aws cloudwatch set-alarm-state`
+- high res alarms can use 10 or 30 second resolution, regular alarms can be set with any multiple of 60 seconds
+
+#### Alarm Targets
+- EC2 (stop, start, terminate an instance)
+- Trigger an AutoScaling action
+- send notification to SNS (from which you can do pretty much anything)
+- SystemManager action
+
+#### Composite Alarms
+- monitor the states of multiple other alarms
+- AND or OR conditions
+- helpful for reducing "alarm noise" by creating complex composite alarms
+
+#### EC2 instance recovery
+- status check
+	- instance status = check the EC2 VM
+	- system status =  check the underlying hardware
+- `StatusCheckFailed_System` can trigger an EC2 instance recovery where you move your instance to another host with the same: public/private IP, elastic IP, metadata, placement group
+- can trigger an SNS notification as well
+
+### CW Synthetics Canary
+- script to monitor APIs, URLs, website
+- reproduce what your customers do programmaticlly to find issues proactively
+- check the availability and latency of your endpoints
+- store load time data and UI screenshots
+- integration w/ CW alarms
+- scripts written in Node.js or Python
+- programmatic access to a headless google chrome browser
+- can be scheduled as one-offs or recurring
+
+#### Blueprints
+- Heartbeat monitor -  load URL, store screenshot and an HTTP archive file
+- API canary - test basic read/write functions of REST APIs
+- Broken Link Checker - checks all links inside the URL you are testing
+- visual monitoring - compare a screenshot taken during a canary run w/ a baseline screenshot
+- Canary Recorder - used with CW synthetics recorder to records your actions on a site and automatically generate a script
+- GUI workflow builder - verifies that actions can be taken on your webpage
+
+### EventBridge (formerly CW events)
+- schedule: Cron jobs (schedules scripts)
+- event pattern: event rules to react to a service doing something
+- trigger lambda functions, send SQS/SNS messages
+- can filter events
+- example destinations
+	- Lambda, AWS Batch, ECS Task
+	- SQS, SNS, Kinesis SData Streams
+	- Step Fnctions, CodePipeline, CodeBuil
+	- SSM, EC2 actions
+- Eventbridge is the `Default Event Bus` receiving events from AWS services
+- can also use `Partner Event Buses` and `Custom Event Buses`
+- event buses can be access by other AWS accounts using resource-based policies
+- can archive events sent to an event bus (indefinitely or set period) and replay these archived events
+
+#### Schema Registry
+- eventbridge can analyze the events in your bus and infer the schema
+- the schema registry allows you to generate code for your application that will know in advance how data is structured in the event bus
+- schema can be versioned
+
+#### Resource-based policy
+- manage permissions for a specific event bus
+- example: allow/deny events from another AWS account/region
+- allows you to aggregate all events from your AWS org into a single account or region
+
+#### Multi-account aggregation
+- create an event rule in the sender account that forwards the events to an event bus in another account
+- create a resource policy in the receiver account that allows the other accounts to send events
+
+### X-Ray
+- compatiblity:
+	- Lambda
+	- Beanstalk
+	- ECS
+	- ELB
+	- API gateway
+	- EC2s or any app server
+- tracing is made of "segments"
+	- can define "subsegments" for more details
+- annotations can be added to traces to provide extra info
+	- key/value pairs used to index traces and use with filters
+- metadata on traces: key/value pairs, not indexed or used for searching
+- x-ray daemon has a config to send traces cross accounts with the correct IAM permissions that the agent assumes
+	- allows you to centralize tracing
+- Security:
+	- IAM for auth
+	- KMS for encrytion at rest
+
+#### Sampling
+- sampling rules allow you to control the amount of data you record
+- by default, the SDK records the first request each second, and five percent sampling of any additional requests
+	- the one traced req/second is the *reservoir* which ensures that at least one trace/second is recorded as long as the service is serving request
+- custom sampling rules allow you to create your own rules with the *reservoir* and *rate*
+	- can specify service, resource type, action, etc
+
+#### How to enable?
+1. Your code (Java, python, Go, Node.js, .NET)
+	- very little code modification required
+	- the app SDK then captures
+		- calls to AWS services
+		- HTTP/HTTPS requests
+		- DB calls
+		- queue calls
+2. Install the x-ray daemon or enable x-ray AWS integration
+	- x-ray daemon works as a low level UDP packet interceptor
+	- Lambda and other AWS services already run the daemon for you
+	- each app must have the IAM rights to write data to x-ray
+	- daemon sends the batches to AWS every 1 second
+
+#### Troubleshooting
+- EC2
+	- ensure the EC2 IAM role has the proper permisions
+	- ensure the daemon is running
+- Lambda
+	- ensure it has IAM execution role with proper policy (`AWSX-RayWriteOnlyAccess`)
+	- ensure x-ray is imported in the code
+	- enable lambda x-ray active tracing
+
+#### X-Ray Write APIs
+- used by the X-Ray Daemon
+	- `PutTraceSegments`
+	- `PutTelemetryRecords`
+		- SegmentsReceivedCount, SegmentsRejectedCount, BackendConnErrs
+	- `GetSamplingRules`
+	- `GetSamplingTargets` and `GetSamplingStatisticSummaries`
+	- x-ray daemon needs to have an IAM policy authorizing the correct API calls to function correctly
+
+#### X-Ray Read APIs
+- `GetServiceGraph`: main graph
+- `BatchGetTraces`: retrieves a list of traces specified by ID
+- `GetTraceSummaries`: retrieves IDs and annotations for traces available for a specified time frame using an optional filter
+- `GetTraceGraph`: retrieves a service graph for one or more specific trace IDs
+
+#### X-Ray <-> Beanstalk
+- beanstalk includes the x-ray daemon
+- can run the daemon by setting an option in the EB console or with a config file
+- give your insstance profile the correct IAM permissions so the daemon can function properly
+- instrument the app code
+- Note: x-ray daemon is not provided for multicontainer docker
+
+#### ECS <-> X-Ray
+
+##### ECS on EC2
+- run the daemon as a container
+- x-ray container as "sidecar"
+	- one side car per app container
+
+##### ECS on Fargate
+- x-ray container as "sidecar"
+	- one side car per app container
+
+#### AWS Distro fo Otel
+- secure, prod-ready AWS-supported distribution of the open-source Otel project
+
+### CloudTrail
+- provides governance, compliance and audit for AWS
+- enabled by defaul
+- get a history of events / API calls made within your AWS account by
+	- console
+	- SDK
+	- CLI
+	- AWS services
+- can put logs from cloudtrail into CW logs or S3
+- a trail can be applied to all regions (default) or a single region
+
+#### Events
+- Management events
+	- operations that are performed on resource in your AWS account
+	- trails are configured to log mgmt events
+	- can separate read events from write events
+- Data events
+	- by default data events are not logged
+		- i.e. S3 object-level activity, lambda `Invoke` API
+- CloudTrail Insights
+	- must be enabled (paid service)
+	- used to detect unusual activity in your account
+		- inaccurate resource provisioning
+		- hitting service limits
+		- bursts of AWS IAM actions
+		- gaps in periodic maintenance activity
+	- analyzes normal mgmt events to create a baseline, then continuously analyzes *write* events to detect unusual patterns
+		- anomalies appear in the CloudTrail console
+		- event is sent to Amazon s3
+		- eventbridge event is generated
+
+#### Event Retention
+- stored for 90 days
+- for longer storage send to s3 and use athena to analyze
+
+#### EventBridge Integration
+- intercept API calls to send to eventbridge to create an alerts
+
+## Integration and Messaging: SQS, SNS & Kinesis
+- two patterns of app communication: sync and async
+- syncronous communication can be problemation if thre are suddent spikes in traffic
+- better to decouple your applications:
+	- SQS: queue model
+	- SNS: pub/sub model
+	- Kinesis: real-time streaming
+- these services can scale independently of the application
+
+### SQS
+- producers send messages to the SQS queue
+	- use the SDK (`SendMessage` API)
+	- message is persisted in SQS until a consumer deletes it
+- consumers poll messages from the SQS queue
+	- once the message is polled, it is processed, then deleted from the queue using the `DeleteMessage` API
+	- consumers can receive and process messages in parallel
+	- consumers can be scaled horizontally to improve throughput (i.e. based your ASG logic on the `ApproximateNumberOfMessages` metric)
+- can have as many consumers as you like
+
+#### Security
+- encryption:
+	- in-flight encryption using HTTPS API
+	- at-rest encryption using KMS keys
+	- client-side encryption if the client wants to perform encryption/decryption itsels
+- access controls: IAM policies to regulate access to the SQS API
+- SQS Access policies
+	- useful for cros-account access to SQS queues 
+	- useful for allowing other services (SNS, S3) to write to an SQS queue
+	- need `ReceiveMessage` to poll and `SendMessage` to put
+
+
+#### Standard Queue
+- oldest offering (10 yrs)
+- fully managed service used to decouple applications
+- attributes:
+	- unlimited throughout, unlimited number of messages in a queue
+	- default retention of messages: 4 - 14 days
+	- low latency (< 10 ms on publish and receive)
+	- limitation of 256KB per message
+- can have duplicate messages (at least once delivery)
+- can have out of order messages (best effort ordering)
+
+#### Message Visibility Timeout
+- after a message is polled by a consumer, it becomes invisible to other consumer (by default set to 30 seconds)
+- the message then has 30 secnods to be processed
+- after the visibility time is over, the message becomes "visibile" in SQS
+- if a message is not processed within the visibility timeout, it will be processed twice
+- a consumer could call the `ChangeMessageVisibility` API to get more time
+- if timeout is too high and the consumer crashed, re-processing will take a lot of time
+- if timeout is too low, the message could be processed many times
+
+#### Dead Letter Queue (DLQ)
+- if a consumer fails to process a message within the timeout, the message goes back to the queue
+- we can set a threshold of how many times a messagee can go back to the queu
+- after the `MaximumReceives` threshold is exceeded, the message goes into a DLQ
+	- useful for debugging
+- DLQ of a FIFO queue must be FIFO (DLQ of a standard queue must be std as well)
+- good to set a max retention policy in the DLQ of 14 days to process te messages before they expire
+
+##### Redrive to Source
+- feature to help consume messages in the DLQ to understand what is wrong with them
+- when our code is fixed, we can redrive the message from the DLQ back into the source queue (or other queue) in batches without writing custom code
+
+#### Delay Queue
+- delay a message up to 15 minutes (default is 0)
+- can set a default at queue level
+- can override the default on send using the `DelaySeconds` parameter
+
+#### Long Polling
+- when a consumer requests messages from the queue, it can optionally "wait" for messages to arrive if there are none in the queue
+- decreases the number of API calls made to SQS while increasing efficiency and latency
+- wait time can be bw 1 sec to 20 secs
+- is preferred to short polling
+- can be enabled at the queu level or at the API level using `ReceiveMessageWaitTimeSeconds`
+
+
+#### SQS Extended Client (Java Library)
+- uses an S3 bucket to hold the large message
+- also sends a small metadata message to the SQS queue which contains a pointer to the file in S3 that the consumer can process
+
+#### SQS API
+- `CreateQueue` Set `MessageRetentionPeriod`, `DeleteQueue`
+- `PurgeQueue`
+- `SendMessage`(`DelaySeconds`), , `DeleteMessage`
+- `ReceiveMessage` (`MaxNumberOfMessages`):default 1, max 10
+- `ReceiveMessageWaitTimeSeconds` = long polling
+- `ChangeMessageVisibility`: change the message timeout
+- batch APIs for SendMessage, DeleteMessage, ChangeMessageVisibility helps decrease your cost
+
+
+#### FIFO Queue
+- limited throughout (300 msgs/sec without batching 3000 msg/s with batching)
+- exactly-once send capability (by removing duplicates)
+- messages are processed in order by the consumer
+
+##### Deduplication
+- deduplication interval is 5 minutes
+- two dedup methods:
+	- content-based deduplication: calcs a SHA-256 hash of the message body
+	- explicity provide a message deduplication ID
+
+##### Message Grouping
+- if you specify the same value of `MessageGroupID` in a SQS FIFO queue, you can only have one consumer and all the messages are in order
+- to get ordering for subset of messages, specify different values for `MessageGroupId`:
+	- messages that share a common Message Group ID will be in order within the group
+	- each Group ID can have a different consumer (parallel processing)
+	- ordering across groups is not guaranteed
+
+### SNS
+- "event producer" only sends messages to one SNS topic
+- as many "event receivers" (subscriptions) as 12,500,000 can listen to the SNS topic notifications
+- each subscriber to the topic will get all the messages (note: now you can filter messages)
+- 100,000 topics limit
+- many AWS services directly integrate with SNS
+- supported subscription protocols:
+	- KDF
+	- Lambda
+	- Email
+	- Email (json)
+	- HTTP
+	- HTTPS
+	- SMS
+
+#### How to publish
+
+- Topic Publish (using SDK)
+	- create a topic
+	- create a subscription (or many)
+	- publish to the topic
+
+- Direct Publish (mobile apps SDK)
+	- create a platform application
+	- create a platform endpoint
+	- publish to the platform endpoint
+	- works with Google GCM, Apple APNS, Amazon ADM
+
+#### Security (same as SQS)
+- encryption
+	- in flight encryption using HTTPS
+	- at rest encryption using KMS keys
+	- client-side encryption if the client wants to perform encryption/decryption itself
+
+- access controls: IAM policies to regulate access to SNS API
+
+- SNS access policies
+	- useful for cross-account access to SNS topics
+	- useful for allowing other services to write to an SNS topic
+
+### SNS - Fifo topic
+- strict ordering by message group ID
+- deduplication using a dedup ID or content based dedup
+- can only have SQS FIFO queues as subscribers
+- limited throughput (same as SQS FIFO)
+- in case you need fan out + ordering + dedup
+
+### Message filtering
+- JSON policy used to filter messages sent to SNS topic's subscriptions
+- if a sub doesnt have a filter policy, it receives every message
+
+### SNS/SQS: Fan Out
+- push once in SNS, receive in all SQS queues that are subscribers
+- fully decoupled, no data loss
+- SQS allows for: data persistence, delayed processing and retries of work
+- ability to add more SQS subscribers over time
+- make sure SQS queue access policy allows for SNS to write
+- cross-region delivery: works with SQS queues in other regions
+
+#### Use case: S3 events to multiple queues
+- for the same combo of event type and prefix, you can only have one S3 event rule
+- if you want to send the same S3 event to many SQS queues, use fan-out
+
+#### Use case: SNS ot S3 through firehose
+- SNS can send to Kinesis
+- Service -> SNS -> Kinesis Data Firehose (from here can go to S3 or any other KDF destination)
+
+
+### Kinesis
+- makes it east to collect, process and analyze streaming data in real-time, such as: app logs, metircs, website clickstreams, IoT telemetry data, etc
+
+#### Kinesis Data Streams
+- streams are provisioned with shards
+- meant for real-time big dta, analytics, and ETL
+- retention can be 1 day - 365 days
+- ability to reprocess (replay) dta
+- once data is inserted in Kinesis, it cannot be deleted (immutability)
+- data that shares the same partition goes to the same shard (ordering)
+
+##### Capacity modes
+- provisioned mode
+	- choose the number of shards provisioned, scale manually or using API
+	- each shard gets 1MB/s in (or 1000 records per second)
+	- each shard gets 2MB/s out (classic or enhanced)
+	- pay per shard provisioned per hour
+- on-demand mode
+	- no need to provision or manage capacity
+	- default provisioned capacity (4MB/s in or 4000 records/second)
+	- scaled automatically based on observed throughput peak during last 30 days
+	- pay per stream per hour & data in/out per GB
+
+##### Security
+- control access/auth using IAM
+- regional resource
+- encryption in flight using HTTPS endpoints
+- encryption at rest using KMS
+- you can implement encryption/decryption of data on client side
+- VPC endpoint available for Kinesis to access within VPC
+- monitor API calls using cloudtrail
+##### producers
+- send data into the data streams via records
+- all use the SDK, some common producers are:	
+	- apps
+	- client
+	- AWS SDK, KPL (Kinesis producer library)
+	- Kinesis agent -  monitor log files
+- records: sequence no, partition key and data blob (up to 1MB)
+- throughput is 1MB/sec or 1000msg/sec per shard
+- `PutRecord` api
+- use batching with `PutRecord` to reduce cost and increase throughput (KPL does this already)
+- hash function used to map a partition key to a specific shard
+- use highly distributed partition key to avoid "hot partition"
+- `ProvisionedThroughputExceeded` error
+	- use highly distributed partition
+	- retries with exponential backoff
+	- increase shards (scaling)
+
+##### Consumers
+- consume the records fom the stream 
+- you can write your own:
+	- KCL - Kinesis consumer library 
+	- AWS SDK - classic or enhaced fan-out
+- or used managed consumers (K Firehose, K Data Analytics, Lambda)
+- shared - classic fan-out
+	- throughput is 2MB/sec per shard (all consumers)
+	- `GetRecords` api
+	- better for low number of consuming apps
+	- max 5 `GetRecords` api calls/sec
+	- latency ~200 ms
+	- returns up to 10MB (then throttle for 5 sec) or up to 10000 records
+- enhanced fan-out
+	- throughput is 2MB/sec per shard (per consumer)
+	- `SubscribeToShard` api
+	- multiple consuming applications for the same stream
+	- latency ~70 ms
+	- more expensis
+	- kinesis pushes data to consumers over HTTP/2
+	- soft limit of 5 consumer applications (KCL) per data stream
+
+##### Lambda Consumers
+- supports classic and enhanced fan-out consumers
+- read records in batches
+- can configure batch size and batch windo
+- if error occurs, lambda retries until success or data expiration
+- can process up to `10` batches per shard simultaneously
+
+##### KCL
+- a Java lib that helps read record from a KDS with distributed apps sharing the workload
+- each shard is to be read by only one KCL instance
+- progress is checkpointed into DynamoDB
+- KCL can run on EC2, E Beanstalk and on-prem
+- records are read in order at the shard level
+- versions:
+	- KCL 1.x (supports shared consumer)
+	- KCL 2.x (supports shared and enhanced fan-out consumer)
+
+##### Shard Splitting
+- used to cinrease the stream capacity
+- used to divide a "hot shard"
+- old shard is closed and will be deleted once the data is expired
+- no automatic scaling in kinesis
+- can't split a shard into more that 2 shards in a single operation
+
+##### Merging Shards
+- descrease the stream capacity and save costs
+- can be used to group two shards with low traffic (cold shards)
+- old shards are closed and will be deleted once the data is expired
+- can't merge more than 2 shards in a single op
+
+
+### Kinesis Data Firehose
+- fully managed service (no administation, autscoling, serverless)
+- pay for data going through firehose
+- near real-time
+	- 60 seconds min latency for non-full batches
+	- or minimum 1MB data at time
+- supports many data formats, conversions, transformations, compressoion
+- can send failed or all data to a backup S3 bucket
+- records (up to 1MB) are sent from source 
+	- AWS IOT
+	- apps
+	- client
+	- SDK, KPL
+	- Kinesis Agent
+	- Amazon CW
+	- Data Streams
+- once in KDF there is an optional lambda transformation
+- KDF will then batch write to any of the valid destinations:
+	- AWS Services:	
+		- S3
+		- Redshift (copy through s3)
+		- OpenSearch
+	- partner destinations (datadog, splunk, new relic, mongodb...)
+	- custom destinations (http endpoints)
+
+#### KDF v KDS
+- KDS:
+	- streaming service for ingest at scale
+	- write custom code
+	- you manage scaling
+	- supports replay
+	- data storage for 1 - 365 days
+	- realtime
+- KDF:
+	- load streaming data
+	- fully managed 
+	- near real-time
+	- auto-scaling
+	- no data storage/ no replay
+
+#### Kinesis Data Analytics
+
+##### KDA for SQL
+- use SQL statements to analyze data
+- sources:
+	- KDS
+	- KDF
+- sinks:	
+	- KDS
+	- KDF
+- can use reference data from an S3 bucket
+- fully managed, no servers to provision
+- autoscaling
+- pay for your data consumption rate
+- use cases:
+	- time-series analytics
+	- realtime dashboards
+	- realtime metrics
+
+##### KDA for Apache Flink
+- use Flink (java, scala, SQL) to process and analyze streaming data
+- sources
+	- KDS
+	- MSK (managed kafka)
+- runs on a managed cluster on AWS
+- provisions compute resources, parallel computing, aut scaling
+- app backups (checkpoints and snapshots)
+- use any Flink programming features
+- *does not* read from firehose
+
+#### Ordering Data in Kinesis
+- use the parition key to ensure the records are going into the same shards
+- partition key is very similar to the group id for SQS
+
+## Lambda
+- scaling is automated
+- pricing:
+	- pay per request and compute time
+- increasing RAM will also improve CPU and network
+- easy to get more resources (up to 10 GB RAM per function)
+- language support:
+	- node.js
+	- python
+	- java (java 8)
+	- C# (.NET Core and powershell)
+	- Go
+	- Ruby
+	- Custom runtime API (community supported - Rust)
+- lambda container image
+	- must implement the lambda runtime API
+	- ECS fargate is preferred
+- main integrated services:
+	- API gateway
+	- Kinesis
+	- DynamoDB
+	- S3
+	- Cloudfront
+	- EventBridge
+	- CW Logs
+	- SNS/SQS
+	- Cognito
+
+### synchronous invocations (CLI, SDK, API Gateway, ALB)
+	- result is returned right away
+	- error handling must happen client side (retries, exponential backoff, etc)
+	- user invoked:
+		- ELB (ALB)
+		- API Gateway
+		- CF
+		- S3 batch
+	- service invoked:
+		- Cognito
+		- Step Functions
+		- Lex
+		- Alexa
+		- KDF
+		
+### asynchronous invocations
+- S3, SNS, CW events (eventbridge), CodeCommit, Codepipeline
+- the events are placed in an event queue
+- the lambda attempts to retry on errors:
+	- 3 tries total
+	- 1 min wait after first, then 2 minutes wait after 2nd
+- make sure the processing is idempotent (in case of retries)
+- it the function is retried, you will see duplicate log entries in the CW logs
+- can define a DLQ (SNS or SQS) for failed processing
+	- this requires `SendMessage` permissions to SQS on the Lambda IAM role
+- async invocations allow you to speed up processing if you don't need to wait for the results (i.e. you need 1000 files processed)
+ 
+### Lambda w/ ALB
+- to expose a lambda as an http endpoint you can use an ALB
+- lambda gets registered in a target group
+- HTTP request gets converted to a JSON request payload
+- Lambda response JSON then gets converted HTTP for the response
+
+#### Multi-header values
+- alb can support multi-header values
+- these get converted as arrays with multiple values in json
+
+### Lambda w/ Eventbridge
+- CRON or rate eventbridge rule to trigger a lambda
+- codepipeline eventbridge rule to trigger on state change
+
+### Lambda w/S3
+- S3 event notifications typically deliver events in seconds but sometimes can be a minute plus
+- if two writes are made to a single non-versioned object at the same time, it is possible that only a single event notification will be sent
+	- if you want to esnure that an event notification is sent for every successful write, enable versioning on your bucket
+- automatically generated resource-based policy allows the S3 to invoke the lambda
+
+### Event Source Mapping
+- applies to:
+	- Kinesis Data Streams
+	- SQS and SQS FIFO queue
+	- DynamoDB streams
+- records need to be polled from the source
+- your lambda is invoked synchronously
+
+#### Streams (Kinesis, DynamoDB)
+- an event source mapping creates an iterator for each shard, proceses items in order
+	- iterator allows it to start with new items, from the beginning of the stream, or from a timestamp
+- processed items are not removed from the stream (other consumers can read them)
+- for low traffic streams you can use a batch window to accumulate records before processing
+- you can process multiple batches in parallel
+	- up to 10 batches per shard
+	- in-order processing is still guaranteed for each partition key
+
+#### Error handling
+- by default, if your function returns an error, the entire batch is reprocessed until the function succeeds or the items in the batch expire
+- to ensure in-order processing, processing for the affected shard is paused until the error is resolved
+- you can configure the event source mapping to:
+	- discard old events
+	- restrict the number of retries
+	- split the batch on error (to work around Lambda timeout issues)
+- discarded events can go to a `Destination`
+
+#### Queues (SQS and SQS FIFO)
+- event source mapping will poll SQS (long mapping)
+- specify batch size (1-10 msgs for FIFO, 1 -10,000 for std)
+- recommended: set the queue visibility timeout to 6x the timeout of your lambda function
+- to use a DLQ, configure it on the SQS queue (not lambda)
+	- DLQ for lambda is only for async invocations
+- lambda also support in-order procesing for FIFO queues, scaling up to the number of active message groups
+- for standard queues, items aren't necessarily processed in order
+- lambda scales up to process a standard queue as quickly as possible
+- when an error occurs, batches are returned to the queue as individual items and might be procesed in a different grouping than the original batch
+- occassionally, the event source mapping might receive the same item from the queue twice, even if no function error returned
+- lambda deletes the items from the queue after they're processed successfully
+
+#### Scaling
+- KDS and DynamoDB
+	- one lambda invocation per stream shard
+	- if you use parallelization, up to 10 batches processed per shard simultaneously
+- SQS standard
+	- lambda adds up to 60 more instances per minute to scale up
+	- up to 1000 batches of messages processed simultaneously
+- SQS FIFO
+	- messages with the same GroupID are processed in order
+	- the lambda function scales to the number of active message groups
+
+### Event and Context Objects
+- Event:
+	- JSON doc that contains data for the func to process
+	- contains data from the invoking service
+	- Lambda runtime converts the event to an object (i.e. dict type in python)
+- Context:
+	- provides methods and properties that provide info about the invocation, function, and runtime enviroenmtn
+	- passed to your function by lambda at runtime
+	- example: `aws_request_id`, `function_name`, etc
+
+### Destinations
+- send result of an async invocation or a failed source mapper
+- async invocations can define destionations for both a successful or failed event
+	- AWS recommends you use destinations over DLQ now for greater flexiblity
+- Source mapping: destinations only for discarded event batches
+- for SQS you can either use destinations or a DLQ from the source SQS queue
+
