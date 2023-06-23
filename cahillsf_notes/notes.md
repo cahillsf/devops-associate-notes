@@ -138,12 +138,12 @@
 	- can move a volume across AZs per snapshot
 - need a provisioned capacity
 - instances connect to EBS via network connections
-- EBS volumes do not ~need~ to be attached to an instance
+- EBS volumes do not *need* to be attached to an instance
 - Delete on Termination attribute 
 	- determines whether the volume is deleted on instance termination
 	- by default Root volume is deleted on termination
 	- any other attached instances are ~not~ terminated on deletion by default
-- spanshots:
+- snapshots:
 	- backup your volume at a point in time
 	- not necessary to detach to snapshot, but recomended
 	- can be copied across AZ or region
@@ -168,7 +168,7 @@
 - backups and replication are user responsibility
 
 ### Types of EBS volumes
-- SDD (can be used for boot volumes):
+- SSD (can be used for boot volumes):
 	- gp2/3: gen purpose SSD vol that balance price/performance (1GiB - 16 TiB)
 		- gp3:
 			- baseline of 3,000 IOPS and throughoutput of 125MiB/s
@@ -193,7 +193,7 @@
 		- max throughput 500 MiB/s - max IOPS 500
 	- sc1 (Cold HDD): lowest cost HDD for less frequently accessed workloads
 		- max throughput 250 MiB/s - max IOPS 250
-	- only SDD can be used for boot disks
+	- only SSD can be used for boot disks
 
 ### EBS Multi-attach
 - available for io1/io2
@@ -214,7 +214,7 @@
 - uses security group to control access to EFS
 - compatible with linux (not windows)
 - encryption at rest using KBM
-- uses a POSIX fil system that scales automatically (no capacity planning)
+- uses a POSIX file system that scales automatically (no capacity planning)
 - Perfomance tiers:
 	- EFS Scale:
 		- 1000s of concurrent NFS clients, 10GB+/s throughout
@@ -244,7 +244,7 @@
 	- AZ specific
 	- gp2: IO increases along with disk size
 	- io1: can increase IO independently 
-	- offers snapshot feature to migrate acrozz AZ
+	- offers snapshot feature to migrate across AZ
 	- EBS backups use IO and you shouldn't run them while handling high traffic
 	- root EBS volumes of instances get terminated by default along with EC2 instance termination (can be disabled)
 - EFS
@@ -256,7 +256,7 @@
 ## ELB and ASG
 
 - scalability: application/system can handle greater loads by adapting
-- two kinds of ~scalability~:
+- two kinds of *scalability*:
 	- vertical
 		- increasing the size of the instance
 		- common for non-distributed systems (i.e. DEB)
@@ -268,7 +268,7 @@
 		- easy to horizontally scale with cloud providers
 		- ASGs and Load balancing enable this
 - scability is related to, but distinct from HA
-- ~high availability~:
+- *high availability*:
 	- goes hand in hand with horizontal scaling
 	- means running your app/system in at least 2 AZs
 	- goal is to survive a DC outage
@@ -277,7 +277,7 @@
 
 ### ELB (managed service)
 - spread load across multiple downstream services
-- expose a single point of access (DNS) to your ap
+- expose a single point of access (DNS) to your app
 - allows you to seamlessly handle failures of downstream instances
 - accomplished helath checks to your instances
 - provide SSL termination for website
@@ -315,18 +315,18 @@
 	- routing based on HOSTNAME in url
 	- roubting based on QueryString or Headers
 - great fit for microservices and container-based apps
-- has a port mapping feature to redirect to a dynamic por tin ECS
+- has a port mapping feature to redirect to a dynamic port in ECS
 
 - what are target groups? can be any of the following:
 	- EC2 instances (can be managed by an ASG) - HTTP
 	- ECS tasks (managed by ECS) - HTTP
 	- Lambda functions - https request is translated to a JSON event
 	- IP addresses (must be private IPs)
-	- ALB can route to multiple target groups)
+	- ALB can route to multiple target groups
 	- health checks are at the target group level
-- ALBs have a ~fixed hostname~
+- ALBs have a *fixed hostname*
 - app servers don't see the IP of the client directly 
-	- ~true~ ip of the client is inserted into header `X-Forwarded-For`
+	- *true* ip of the client is inserted into header `X-Forwarded-For`
 	- we can also get port (`X-Forwarded-Port`) and proto (`X-Forwarded-Proto`)
 
 
@@ -345,7 +345,7 @@
 #### Gateway Load Balancer
 - Layer 3 protocol (network layer - IP packets)
 - deploy, scale and manage a fleet of 3rd party network virtual applicances in AWS
-- examples: firewalls, intrusion detection, prevention systems, deep packet inspection system, parload manupulation
+- examples: firewalls, intrusion detection, prevention systems, deep packet inspection system, payload manipulation
 - combines the following functions:
 	- Transparent Network Gateway (single entry/exit point for all traffic)
 	- Load Balancer - distributes traffic to your virtual appliances
@@ -381,10 +381,10 @@
 	- cross AZ is enabled by default (can be disabled at TG level)
 	- no charges for inter AZ data
 - NLB/GWLB
-	- cross AZ is ~disabled~ by default
+	- cross AZ is *disabled* by default
 	- you pay for inter AZ data
 - CLB
-	- cross AZ is ~disabled~ by default
+	- cross AZ is *disabled* by default
 	- no charges for inter AZ data
 
 #### SSL/TLS Basics
@@ -400,7 +400,7 @@
 	- can add an option list of certs to support multiple domains
 	- clients can use SNI (server name indication) to specify the hostname they reach
 	- ability to specify a security policy to support older versions of SSL/TLS (legacy clients)
-- SNI solves the problem of loading multple SSL certs onto 1 web server to serve multiple web sites
+- SNI solves the problem of loading multiple SSL certs onto 1 web server to serve multiple web sites
 - it's a newer protocol that requires the client to indicate the hostname of the target server in the initial SSL handshake
 - server will then find the correct cert, OR fallback to the default
 - works for ALB & NLB (newer gen) and Cloudfront
@@ -443,7 +443,7 @@
 	- simplest and easiest to setup 
 	- i.e. avg CPU should = 40%
 - simple/step scaling
-	- when an alarm is trigerred, then add 2 unites
+	- when an alarm is trigerred, then add 2 units
 - scheduled actions
 	- anticipate a scaling based on a known usage pattern
 - predictive scaling
@@ -451,7 +451,7 @@
 
 - good metrics for scaling:
 	- CPUUtilization (avg CPU)
-	- RequestCountPerTarget (make sure the number of reqs/ instance is stable
+	- RequestCountPerTarget (make sure the number of reqs/ instance is stable)
 	- Average Network In/Out (if your app is network bound)
 	- or any custom metric
 - Scaling Cooldowns:
@@ -481,7 +481,7 @@
 	- maintenance windows for upgrades
 	- horizontal and vertical scaling capabilities
 	- storage backed by EBS (gp2 or io1)
-- caveat: you cannot SSH into your instances as they are offered as a ~managed service~
+- caveat: you cannot SSH into your instances as they are offered as a *managed service*
 
 ### Storage Auto Scaling
 - helps increase your storage on RBS DB dynamically
@@ -498,7 +498,7 @@
 
 #### Read Replicas
 - can created up to 15 read replicas for read scalability (within AZ, cross AZ, or cross region)
-- replication is ASYNC, so reads are ~eventually~ consistent
+- replication is ASYNC, so reads are *eventually* consistent
 - replicas can be promoted to their own DB
 - applications need to update the connection string to leverage read replicas
 - read replicas are used for SELECT (read) operations only
@@ -515,7 +515,7 @@
 - increase availability
 - failover in case of loss of AZ, loss of network, instance or storage failure
 - no manual intervention in apps
-- ~not~ used for scaling
+- *not* used for scaling
 - NOTE: read replicas can be setup as multi AZ for DR
 - common q: how to go from single-AZ to multi-AZ
 	- this is a zero downtime operation
@@ -531,7 +531,7 @@
 - AWS cloud optimized and claims 5x performance improvement over MySQL on RDS, over 3x performance of Postgres on RDS
 - storage grows automatically in increments of 10GB up to 128 TB
 - can have up to 15 replicas and replication is faster than MySQL (sub 10ms lag)
-- failover is instantaneous (its HA native)
+- failover is instantaneous (it's HA native)
 - costs 20% more than RDS (20% more) but is more efficient
 - automatic fail-over
 - backup and recovery
@@ -562,7 +562,7 @@
 ### RDS & Aurora Security
 - at-rest encryption:
 	- DB masters and replicas encryption using AWSK KMS must be defined at launch time
-	- if the master is not encryped, the read replicas canot be encrypted
+	- if the master is not encryped, the read replicas cannot be encrypted
 	- to encrypt an un-encrypted DB, use a DB snapshot and restore as encrypted
 - in-flight encryption:
 	- TLS_ready by default, use the AWS TLS root certificates client-side
@@ -626,7 +626,7 @@
 	- anti-patterns: data changing rapidly, all large key space are frequently needed
 - is data well structured for caching?
 	- example: key value caching, or caching of aggregation results
-- lacy loading/cache aside is easy to implement and works for many situations as a foundation, esp on the read side
+- lazy loading/cache aside is easy to implement and works for many situations as a foundation, esp on the read side
 - write through is usually combined with lazy loading if the use case is appropriate
 - setting a TTL is usually not a bad idea (except when using write-through)
 	- specifics depend on your use case
@@ -646,21 +646,20 @@
 
 #### Write Through 
 - add or update cache when DB is updated
-- 
 
 ##### Pros:
-	- data in cache is never stale, reads are quick
-	- write penalty vs read penalty (each write requires 2 calls)
-		- could be better from a user perspective (writes are understood to take more time vs a fetch)
+- data in cache is never stale, reads are quick
+- write penalty vs read penalty (each write requires 2 calls)
+	- could be better from a user perspective (writes are understood to take more time vs a fetch)
 
 ##### Cons:
-- missing data until is is added/update in the DB
+- missing data until it is added/update in the DB
 	- mitigation is to implement lazy loading as well
 	- but risk of cache churn - a lot of the data written to the cache will never be read
 
 #### Cache Evictions and TTL (time-to-live)
 - cache eviction can occur in three ways:
-	- you delte the item explicitly in the cache
+	- you delete the item explicitly in the cache
 	- item is evicted because the memory is full and its not recently used (Least Recently Used)
 	- you set an item TTL
 - TTL are helpful for any kind of data
@@ -722,7 +721,7 @@
 - AAAA - maps a host name to an IPv6 address
 - CNAME - maps a hostname toa nother hostname
 	- the target is a domain name which must have an A or AAAA record
-	- you cannot create a CNAME record for the top node aof a DNS namespace (Zone Apex)
+	- you cannot create a CNAME record for the top node of a DNS namespace (Zone Apex)
 		- i.e., you can't create for `example.com`, but you can create for `www.example.com`
 - NS - name servers for the Hosted Zone 
 	- control how traffic is routed for a domain
@@ -807,9 +806,9 @@
 		- healthy / unhealthy threshold (3 by default)
 		- interval = 30 seconds (can set to 10 sec == higher cost)
 		- supported protocol: TCP, HTTP, HTTPS
-		- if > 18% if the health checkers report the endpoint is helathy, route 53 considers it healthy (otherwise unhealthy)
+		- if > 18% if the health checkers report the endpoint is healthy, route 53 considers it healthy (otherwise unhealthy)
 		- ability to choose which locations you wante route 53 to use
-		- healtch checks pass when the endpoint responds with 2xx and 3xx status codes
+		- health checks pass when the endpoint responds with 2xx and 3xx status codes
 		- health checks can be setup to pass/fail based on the text in the first 5120 bytes of the repsonse
 		- you must configure your router/firewall to allow incoming requests from route 53 health checkers
 	- health checks that monitor other health checks (calculated health checks)
@@ -831,7 +830,7 @@
 ### Domain Registrar vs DNS
 - registrar typically will provide a DNS service to manage the records
 - but you can use another DNS service to manage your DNS records (i.e. buy a domain from GoDaddy but use Route 53)
-- would need to specify the AWS nameservers within the domain registrar and reate a hosted zone in route 53 
+- would need to specify the AWS nameservers within the domain registrar and create a hosted zone in route 53 
 
 ## VPC (private network)
 - regional resource
@@ -858,9 +857,9 @@
 	- inherited by all resources in the subnet
 - SGs (security groups)
 	- control traffic to and from an ENI/EC2 instance
-	- can have onyl ALLOW rules
+	- can have only ALLOW rules
 	- rules include IP addresses and other security groups
-	- stateful: return traffic is automatically allows
+	- *stateful*: return traffic is automatically allowed
 	- all rules are evaluated before deciding to allow traffic
 	- must be explicity associated with resources
 
@@ -940,7 +939,7 @@
 	- useful for finegrained permissions 
 	- useful for analytics purposes
 - YOU CANNOT SEARCH OBJECT METADATA OR OBJECT TAGS
-	- instad, you must use an external DB as a search index such as DynamoDB
+	- instead, you must use an external DB as a search index such as DynamoDB
 - version ID
 
 ### Bucket Policy
@@ -950,9 +949,9 @@
 	- Bucket Policies - bucket wide rules from the S3 console (allows cross-account)
 	- Object ACL (access control list) - finer grain (can be disabled)
 	- Bucket ACL - less common (can be disabled)
-- Note: an IAM principal can access an S3 bobject if:
+- *Note:* an IAM principal can access an S3 object if:
 	- the user IAM permissions ALLOW it or the resource policy ALLOWS it
-	- AND there's no explicit DENI
+	- AND there's no explicit DENY
 - Encryption : encrypt object in S3 using encryption keys
 - JSON based policies
 	- Resources
@@ -979,7 +978,7 @@
 - use cases:
 	- CRR - compliance, lower latency access, replication across accounts
 	- SRR - log aggregation, live replication between prod and test accounts
-- after you enable replciation, only new objects are replicated
+- after you enable replication, only new objects are replicated
 - to replicate existing objects, use S3 Batch Replication
 - for DELETE operations
 	- can replicate delete markers from source to target (optional setting)
@@ -1009,8 +1008,8 @@
 - Glacier
 	- low-cost for archiving/backup
 	- price for storage + retrieval 
-	- *Glacier Instant Retrieval*
-		- millisecnond retrieval 
+	- Glacier Instant Retrieval
+		- millisecond retrieval 
 		- great for quarterly accessed data
 		- min storage duration of 90 days
 	- Glacier Flexible Retrieval
@@ -1023,7 +1022,7 @@
 	- small monthly monitoring and auto-tiering fee
 	- objects move automatically bw access tiers based on usage
 	- no retrieval costs
-	- Frequent (default), Infrequent (30 days no access), Archive Instant Access (90 days no access), Archive Acess (optional - 90 to 700+ days), Deep Archive Access (option - 180 to 700_ days)
+	- Frequent (default), Infrequent (30 days no access), Archive Instant Access (90 days no access), Archive Acess (optional - 90 to 700+ days), Deep Archive Access (optional - 180 to 700+ days)
 
 - Can move between classes manually or use Lifecycle configs
 
@@ -1125,7 +1124,7 @@
 - browser based mechanism to allow requests to other origins while visiting the main origin
 - the request wont be fulfilled unless the other origin allows for the requests using CORS header (e.g. `Access-Control-Allow-Origin`)
 - if a client makes a cross-origin request on our S3 bucket, we need to enable the correct CORS headers
-- you can allows for a specific origin or for `*` (all origins)
+- you can allow for a specific origin or for `*` (all origins)
 
 ### MFA Delete
 - force users to generate a code on an MFA device before completing important operations
@@ -1220,7 +1219,7 @@
 - when you call the API, you sign the request so that AWS can identify you (using your credentials)
 - you should sign an AWS HTTP request with SigV4
 	1. include it in the `Authorization` header of the request
-	2. inlude it as a query string option (`X-Amz-Signature`)
+	2. inlcude it as a query string option (`X-Amz-Signature`)
 
 ## Cloudfront (CDN)
 - content delivery network that improves read performance by caching content at the edge
@@ -1230,7 +1229,7 @@
 
 ### Origins
 - S3 bucket
-	- distributing files and cachin them at the edge
+	- distributing files and caching them at the edge
 	- enhanced security with Cloudfront OAC (origin access control)
 		- can be used in combination w/ S3 bucket policy
 	- OAC is replacing Origin Access Identity (OAI)
@@ -1257,13 +1256,13 @@
 	- great for dynamic content that needs to be available at low latency in a few regions
 
 ### Caching
-- the cache lives at each CF edge lcoation
+- the cache lives at each CF edge location
 - CF identifies each object in the cache using the Cache Key
-- you want to maximize the cache hit ration to minimize requests to the origin
+- you want to maximize the cache hit ratio to minimize requests to the origin
 - you can invalidate part of the cache using the `CreateInvalidation` API
-- CF cache key = unique identifier for every objec tin the cache
+- CF cache key = unique identifier for every object in the cache
 	- by default consists of  hostname + resource portion of the URL
-	- if you have an app the servers content based on user, device, lang, location, etc you can add other elements to the Cache Key using CF Cache policies
+	- if you have an app that serves content based on user, device, lang, location, etc you can add other elements to the Cache Key using CF Cache policies
 
 #### Cache policies
 - Cache based on:
@@ -1291,7 +1290,7 @@
 			- all are forwarded
 			- worst caching performance
 - control the TTL (0 seconds to 1 yr) can be set by the origin using `Cache-Control` header, `Expires` header
-- create your own policy or use predefined manaed policies
+- create your own policy or use predefined managed policies
 - all http headers, cookies, and query strings that you include in the cache key are automatically included in origin requests
 
 #### Origin Request Policy 
@@ -1311,7 +1310,7 @@
 #### Cache Behaviors
 - configure different settings for a given URL path pattern
 - example: one specific cache behavior to `images/*.jpg` files on your origin web server
-- route ot different kind of origins/origin groups based on the content type or path pattern
+- route to different kind of origins/origin groups based on the content type or path pattern
 	- /images/*
 	- /api/*
 	- /* (default cache behavior)
@@ -1326,7 +1325,7 @@
 
 ### CF Signed URL / Signed Cookies
 - you want to distribute paid shared content to premium users
-- can use CF signed URL / cookie and a attach a policy with
+- can use CF signed URL / cookie and attach a policy with
 	- URL expiration
 	- IP ranges to acces the data from
 	- trusted signed (which AWS accounts can create signed URLs)
@@ -1354,7 +1353,7 @@
 	- can leverage caching features
 - S3 Pre-signed URL
 	- issue a request as the person who pre-signed the url
-	- uses the IAM key of the signing IAM principat
+	- uses the IAM key of the signing IAM principal
 	- limited lifetime
 
 ### Pricing
@@ -1366,7 +1365,7 @@
 	- Price class 100 -  only the least expensive regions
 
 ### Origin Groups
-- to increase HA and use failover, you can user origin groups
+- to increase HA and use failover, you can use origin groups
 - origin group: one primary and one secondary
 - if the primary origin fails, the second one is used
 - if using S3 origins, this works well with multi-region bucket replication
@@ -1400,24 +1399,24 @@
 	- reference sensitive data in Secrets manager or SSM Param store
 - ECS Task role:
 	- allows each task to have a specific role
-	- use diffrent roles for different ECS services
+	- use different roles for different ECS services
 	- task role is defined in the task definition
 
 ### LB Integrations
 - ALB (port 80/443) supported and works for most use cases
 - NLB recommended only for high throughout/ high performance use cases or to pair w/ Private link
-- ELB (classic) is support but not recommended (not supported on Fargate / no advanced features)
+- ELB (classic) is supported but not recommended (not supported on Fargate / no advanced features)
 
 ### ECS Data Volumes (EFS)
 - mount EFS file systems onto ECS tasks
-- supported for both EC2 and farga
+- supported for both EC2 and fargate
 - tasks running in any AZ will share the same data in the EFS file system
 - Fargate + EFS = totally serverless
-- use cases: persisten multi-AZ shared storage for your containers
+- use cases: persistent multi-AZ shared storage for your containers
 - note: S3 cannot be mounted as a file system
 
 ### ECS Autoscaling
-- automatically increase/decreate the desired number of ECS tasks
+- automatically increase/decrease the desired number of ECS tasks
 - uses AWS App auto autoscaling which can be based on 3 metrics:
 	- ECS service avg CPU utilization
 	- ECS service avg memory utilization (RAM)
@@ -1445,8 +1444,8 @@
 	- User uploads an object to an S3 which triggers an event
 	- event kicks off an ECS tasks which gets the obj from S3, does some processing and saves the result to DynamoDB (task role allows access to other AWS services)
 - ECS Tasks invoked by eventbridge schedule
-	- every 1 hour event is creates
-	- ECS tasks does some batch processing of objs in S#
+	- every 1 hour event is created
+	- ECS tasks does some batch processing of objs in S3
 - ECS tasks polling sqs
 	- use autoscaling to see if more capacity is needed to process the messages
 - Intercept Stopped tasks using eventbridge
@@ -1483,7 +1482,7 @@
 - process follows these steps:
 	1. identify the instances that satisfy the CPU/mem/port reqs in the task def
 	2. identify the instances that satisfy the task placement constraints
-	3. identify the instnaces that satisfy the task placement strategies
+	3. identify the instances that satisfy the task placement strategies
 	4. select the instances for task placement
 - strategy types - can be mixed together
 	- binpack
