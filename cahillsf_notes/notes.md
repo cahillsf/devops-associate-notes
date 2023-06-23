@@ -3518,6 +3518,10 @@
 	- `aws cloudformation package` / `sam package`
 	- `aws cloudformation deploy` / `sam deploy`
 - allows you to build and deploy locally for testing and debugging
+- build on CloudFormation
+- requires the `Transform` and `Resources` section
+- fully integrated with code deploy
+- use SAM policy templates for easy IAM policy definition
 
 ### SAM Policy Templates
 - list of templates to apply permissions to your lambda functions
@@ -3530,3 +3534,530 @@
 - SAM natively uses codedeploy to update lambda functions
 - traffic shifting feature
 - pre and post traffic hooks to validate deployment (before traffic shift starts and after it ends)
+- easy and automated rollback using CW alarms
+- `AutoPublishAlias`
+	- detects when new cod is being deployed
+	- creates and publishes an updated version of that function with the latest code
+	- points the alias to the updated version of the Lambda func
+- `DeploymentPreferece` = Canary, Linear, AllAtOnce
+- `Alarms` = can trigger a rollback
+- `Hooks` = pre and post traffic shifting lambda funcs to test your deployment
+
+### Local Capabilities
+- locally start AWS lambda
+	- `sam local start-lambda`
+	- starts a local endpoint that emulates AWS lambda
+	- automated tests can be run against the endpoint
+- locally invoke lambda func
+	- `sam local invoke`
+	- helpful for testing
+	- if the func is calling AWS, make sure the proper credentials are provided
+- locally start an API gateway
+	- `sam local start-api`
+	- starts a local HTTP server thats hosts your functions
+	- supports hot-reloading
+- generate AWS events for lambda funcs
+	- `sam local generate-events`
+	- generate sample payload for event sources
+
+### Serverless Application Repository (SAR)
+- managed repo for serverless apps
+- apps are packaged with SAM
+- build and publish apps that can be re-used by organizations
+	- can share publicly
+	- can share with specific AWS accounts
+- prevents duplicate work
+- app settings and behavior can be customized using envvars
+
+## AWS CDK
+- define your cloud infra using a familiar lang (JS, python, java, .NET)
+- contains high level components called constructs
+- code is compiled into a CF template
+- you can deploy infra and app runtime code together
+	- great for Lambda funcs
+	- great for docker containers in ECS/EKS
+
+### CDK v SAM
+- SAM
+	- serverless focused
+	- declarative template
+	- leverages CF
+- CDK
+	- ALL AWS services
+	- write infra in a programming lang
+	- leverages CF
+- SAM + CDK
+	- can use sam CLI to locally test CDK apps
+	- use `cdk synth`
+
+### Constructs
+- `CDK Donstruct` is a component that encapsulates everything CDK needs to create the final CF stack
+- can represent a single AWS resources (i.e. S3 Bucket) or multiple relates resouces (i.e. SQS queue with compute)
+- AWS Construct library:
+	- a collection of constructs included in AWS CDK which contains `Constructs` for every AWS resources
+	- contains 3 different levels of construct (L1, L2, L3)
+- `Construct Hub` - contains addtl `Constructs` from AWS, 3rd parties, and open-source CDK
+
+#### L1
+- CFN resources - all resources directly available in CF
+- construct names start with `Cfn`
+- you must explicitly configure all resource properties
+
+#### L2
+- resources with a higher level (intent-based API)
+- adds convenient defaults, boilerplate and helper methods that make it simpler to work with the resource
+
+#### L3
+- `Patterns` which represent multiple related resources
+- helps you complete common tasks n AWS
+- i.e.
+	- `aws-apigateway.LambdaRestApi` represents an API gateway backed by a lambda function
+
+### Bootstrapping
+- necessary resources must be generated per Account/Region before you can deploy CDK apps into an env
+- CF Stack called `CDKToolkin` is created and contains:
+	- S3 bucket
+	- IAM Roles
+
+### Testing
+- use CDK assertions module combined with common test frameworks (i.e. Jest or Pytest)
+- verify we have specific resources, rules, conditions, params
+- two types of tests
+	- fine-grained assertions
+	- snapshot tests - compare synth'd CF template against a previously stored baseline
+- to import a template
+	- `Template.fromStack(MyStack)` -> stack build in CDK
+	- `Template.fromString(MyString)` -> stack build outside CDK
+
+## Cognito
+- give users an identity to interact with web/mobile app
+
+### cognito user pools (for authentication = idnetity vertification):
+- sign in functionality for app users
+- integrate with API gateway and ALB
+	- ALB + Listeners & Rules allows for users to authenticate against CUP and access the target group
+- serverless database
+- simple login (username + pw)
+- MFA
+- email and phone number verification
+- federated identities through 3rd party IdPs: users from FB, Google, SAML
+- Feature: block users if their credentials are compromised eleswhere
+- login sends back a JWT
+- built in support for snychronous lambda triggers on User Lifecycle hooks
+- Cognito has a hosted auth UI you can add to your app which allows for customizations (logo+css)
+- `Hosted UI Custom Domain` -> must create the ACM cert in `us-east-1`
+	- defined in the `App Integrations` section
+- Adapative Authentication
+	- block sign ins or req MFA if the login is suspicious
+	- risk factor is calcd base don different factors such as device, location, IP
+	- users are prompted for a second MFA when risk is detected
+	- integration with CW logs for # sign-in attempts, risk score, failed challenges
+- CUP Issues JWT tokens (Base64 encoded)
+	- Header
+	- Payload
+	- Signature
+- Signature must be verified to ensure the JWT can be trusted (libraries can help w this)
+- Payload contains the User info (sub UUID, given_name, email, phone_number, expiry)
+
+#### ALB <> CUP
+- offload the work of authenticating users to the ALB
+- auth users through
+	- IdP, OpenID Connect (OIDC)
+	- Cognito User Pools
+- must use an HTTPS listener to set `authenticate-oidc` and `authenticate-cognito` rules
+- `OnUnauthenticatedRequest` - authenticate (default), deny or allow
+
+### cognito identity pools (federated identity for authorization = access control):
+- provide AWS credentials to users so they can access AWS resources directly
+- integrate with Cognito User Pools as an IdP
+- identity pool can include:
+	- public providers (Google, Apple, Amazon)
+	- users in an Amazon Cognito user pool
+	- OIDC and SAML IdPs
+	- developer authenticated identities (custom login server)
+	- can also allows for *unauthenticated guest access*
+- users can then access AWS services directly or via API gateway
+	- IAM policies applied to the credentials are defined in Cognito
+	- can be customized based on the `user_id` for fine grained control
+- once the token has been obtained from the IdP, it can be exchanged for temporary AWS credentials using STS
+- can define a default IAM role for authenticated/guest users
+- can partition your users' access using policy variables
+
+## Other Serverless
+### Step Functions
+- model your workflow as state machines
+- written in JSON
+- visualize the workflow, its execution and its history
+- workflow can be kicked off with SDK, API, CW Event
+
+#### Task State
+- work in your state machine
+- can invoke 1 AWS service or run 1 activity
+- `Choice` - test for a condition to sent to a branch
+- `Fail` or `Succeed` - stop execution with failure or success
+- `Pass` - pass the input to its output or inject some fixed data
+- `Wait` - provide a delay for a fixed interval or until a specified time
+- `Map` - dynamically iterate steps
+- `Parallel` - begin parallel branches of execution
+
+#### Error Handling
+- any state can encounter runtime errors
+	- state machine definition issues
+	- task failures
+	- transient issues
+- use `Retry` and `Catch` in the state machine to handle errors instead of inside the app code
+- predefined error codes
+	- `States.ALL` - matches any error name
+	- `States.Timeout` - task ran longer than `TimeoutSeconds` or no heartbeat received
+	- `States.TaskFailed`
+	- `States.Permissions`
+- the state may report its own errors
+- conditions in `Catch` and `Retry` are evaluated from top to bottom
+- `ResultPath` is used to append the result to the output using the `$` as to object root
+
+#### Wait for Task Token
+- allows you to pause setep functions during a task until a task token is returned
+- task might wait for other AWS services, human approval, 3rd party integration, etc
+- append `.waitForTaskToken` to the `Resource` fiel to tell the step functions to wait for the task token
+- task will pause until it received the token back with a `SendTaskSuccess` or `SendTaskFailure` API call
+
+#### Activity Tasks
+- enables you to have task work performed by an `Activity Worker`
+- `Activity Worker` apps can be running on EC2, Lambda, Mobile
+- workers poll for a task using `GetActivityTask` API
+- after worker completes its work, it send a response either `SendTaskSuccess` or `SendTaskFailure`
+- to keep the `Task` active:
+	- confure how long a task can wait by setting `TimeoutSeconds`
+	- periodically send a heartbeat from your Activity worker using `SendTaskHeartBeat` within the time you set in `HeartBeatSeconds`
+	- task can wait up to a full year
+
+#### Standard vs Express
+- see note in presentation
+
+### AppSync
+- managed services that uses GraphQL
+- combines data from one or more sources
+	- NoSQL data stores, RDMS, HTTP APIs
+	- integrates with DynamoDB, Aurora, OpenSearch, etc
+	- custom sources with Lambda
+- retrieve data in realtime with WebSocket or MQTT on WebSOcket
+- for mobile apps: local data access and data sync (replaces cognitosync)
+
+#### Security
+- four ways to auth apps to interact w/AppSync
+	- API_KEY
+	- AWS_IAM
+	- OPENID_CONNECT
+	- AMAZON_COGNITO_USER_POOLS
+- for custom domains and HTTPS, use CF in front of 
+
+## Amplify
+- create mobile and web apps (EB for mobile + web)
+- authentication (OOTB)
+	- leverages Cognito
+	- user registration, auth, accountrecovery, etc
+	- prebuilt UI components
+	- fine grained authorization
+- datastore
+	- leverages appsync and dynamodb
+	- work with local data and automatically sync to the cloud
+	- powered by graphql
+	- offline and real-time capabilities
+	- visual data modeling w/ Amplify studio
+- hosting
+	- build and host modern web apps
+	- CI/CD
+	- PR previews
+	- custom domains
+	- monitoring
+	- redirect + custom headers
+	- PW protection
+- E2E testing and unit testing
+	- integrated w/Cypress
+	- generate a UI report for your tests
+
+## AWS STS - Security Token Serveice
+- allows to grant limited and temporary access to AWS resources (up to 1hr)
+- `AssumeRole`: assume roles within your accound or cross account
+	- define an IAM role within an account
+	- define which principals can access the role
+	- use STS tto retrieve cred and impersonate the IAM role
+	- temporary creds valid bw 15mins and 1hr
+- `AssumeRoleWithSAML`: return credentials for users logged in with SAML
+- `AssumeRoleWithWebIdentity`: not recommeded - use cognito identity pools instead
+- `GetSessionToken`: from MFA, from a user or AWS account root user
+	- access ID
+	- secret key
+	- session token
+	- expiration date
+- `GetFederationToken`: temp creds for a federated user
+- `GetCallerIdentity`: details about the IAM user or role used in the API call
+- `DecodeAuthorizationMessage`: decode error msg when an API call is denied
+
+### IAM policies (simplified)
+- if there's an explicit DENY -> DENY
+- if there's an ALLOW -> ALLOW
+- else -> DENY
+
+### IAM Policies <> S3 Buckets
+- what's evaluated is the `UNION` of the two policies
+
+### Dynamic policies with IAM
+- special policy var `${aws:username}`
+
+### Inline v Managed
+- managed policies
+	- maintained and updated by AWS
+	- good for power users and admin
+- customer managed
+	- best practice, re-usable, can be applied to many principals
+	- version-controlled + rollback, central change mgmt
+- inline
+	- 1:1 policy:principal
+	- policy is deleted if you delete the IAM principal
+
+### Pass a role to a service
+- many services require an IAM role to the service (usually happens during setup)
+- the service assumes the role to perform the related actions
+- to do this you need `iam:PassRole` permission
+	- often comes with `iam:GetRole` to view the role being passed
+- roles can only be passed to what their *trust* allows
+
+## AWS Directory Services
+- Managed Microsoft AD
+	- create your own AD in AWS, manage users locally, supports MFA
+	- establish "trust" connections with your on-prem AD
+- AD Connector
+	- directory gateway (proxy) to redirect to on-prem AD, supports MFA
+	- users are managed only on the on-prem AD
+- Simple AD
+	- AD-compatible managed directory on AWS
+	- cannot be joined with on-prem AD
+
+## Security & Encryption
+
+### KMS (Key Mgmt Service)
+- AWS manages encryption keys
+- fully integrated with IAM for auth
+- easy way to control access to your data
+- audit KMS key usage using cloudtrail
+- integrated into most AWS services
+- never store your secrets in plaintext (esp in code)
+- AWS owned keys (free): SSE-S3, SSE-SQS, SSE-DDB (default key)
+- AWS managed keys (free): (`aws/<SERVICE_NAME>`)
+- Customer managed keys ($1/mo) - must be symmetric
+	- pay for api calls to KMS as well ($0.03/10000 calls)
+- Automatic Key rotation:
+	- aws-managed (automatic every year)
+	- customer managed (automatic every year)
+	- imported KMS (only manual rotatoin possible using alias)
+- keys are scoped per region
+- KMS encrypt API call has a limit of 4 KB
+	- if you want to encrypt > 4 KB, we need to use `Envelope Encryption`
+- `Encrypt` and `Decrypt` main API calls
+- `GenerateRandom` returns a random byte string
+
+#### Envelope Encryption
+- main API for this is `GenerateDataKey` which returns a plaintext data key (DEK) and the encrypted DEK
+- then you encrypt the file with the DEK and add the encrypted DEK (these two components make up the final file)
+- to decrypt the file, use the Decrypt API to decrypt the DEK, then use the plaintext DEK to decrypt the file
+- AWS provides an Encryption SDK
+	- data key caching:
+		- re-use data keys instead of creating new ones for each encryption
+		- helps reduce the API calls (with a security tradeoff)
+		- use `LocalCryptoMaterialsCache`
+- `GenerateDataKeyWithoutPlaintext` - generate an encrypted DEK
+
+
+#### Key Types
+- symmetric (AES-256)
+	- single key used to encrypt and decrypt data
+	- aws services that are integrated with KMS use symmetric keys
+	- never get access to the KMS key unencrypted
+- asymmetric (RSA & ECC key pairs)
+	- public (encrypt) and private (decrypt) key pair
+	- public key is downloadable, but you cant access the private key unencrypted
+	- use case: encryption outside of AWS by users who can call the KMS API
+
+#### Key Policies
+- control access to KMS keys
+- difference: without a policy you cannot control access (no one can access)
+- *default* kms key policy:
+	- created if you don't provide a key policy
+	- anyone in the account can acces the key
+- custom kms key policy:
+	- define users, roles that can access the KMS key
+	- define who can administer the key
+	- useful for cross-account access of your KMS key
+
+#### Request Quotas
+- when you exceed the quota, you get a `ThrottlingException`
+- for cryptographic ops, all api calls share a quota (including requests made by AWS on your behalf)
+- solution:
+	- request a quota increase
+	- use key caching for DEK
+
+#### S3 Bucket Key for SSE-KMS
+- add an S3 bucket key for envelope encryption to decrease number of API calls to KMS by 99%
+- leverages Data keys
+
+### Principal Options in IAM Policies
+- AWS account
+- IAM Roles
+- IAM Role Sessions
+- IAM Users
+- Federated User Sessions
+- AWS Services
+
+### CloudHSM
+- AWS provisions encryption hardware
+- dedicated hardware (HSM = Hardware security module)
+- manage your own encryption keys
+- HSM device is tamper resistant, FIPS 140-2 Level 3 compliance
+- supports both symmetric and asymmetric encryption
+- must use the CloudHSM client software
+- support for Redshift
+- good option to use with SSE-C encryption
+- spread across multiple AZs for HA
+- integration through KMS
+	- define a customer key store in KMS to connect to CloudHSM
+	- benefit of auditing w/ cloudtrail
+- single tenant
+
+### SSM Paramete Store
+- secure storage for configuration and secrets
+- option encryption using KMS
+- serverless, scalable, durable
+- version tracking of configs/secrets
+- security through IAM
+- notifications w/ Eventbridge
+- integrate w/CloudFormation
+- allows for hierarchy
+- can create a cloudwatch event rule to invoke a lambda every 30 days that will manually change the RDS password and update the value in the param store
+
+#### Parameter Policies (advanced parameters)
+- allow or assign a TTL to a param to force updating/deleting sensitive dat
+- can assign multiple policies at onces
+- events generated in eventbridge to notify based on policies in place
+
+### Secrets Manager (primarily RDS)
+- newer service, meant for storing secrets
+- capability to force rotation of secrets every `X` days
+- automate generation of secrets on rotation (uses lambda)
+- integration w/ RDS
+- secrets are encrypted w/ KMS
+- multi-region secrets
+	- repicate secretes across regions
+	- secrets manager keeps read replicas in sync with the primary secret
+	- ability to promote a read replica secret to a standalone secret
+
+#### CF integration (RDS and Aurora)
+- `ManageMasterUserPassword` - creates admin secret implicitly
+- can also create the secret, reference the secret in the RDB DB instance, and link the secret as an attchment to the RDS DB
+
+### CW Logs Encryption
+- can encrypt CW logs w/KMS keys
+- can enable at log group level by associating with a CMK
+	- must use API, cannot be done with console
+
+### CodeBuild Security
+- use envvars to reference either param store secrets OR secrets manager secrets
+
+### Nitro Enclaves
+- process highly sensitive data in an isolated compute environment
+	- PII, financial, healthcare
+- fully isolated VMs, hardened and highly constrained
+	- not a container, not persisent storage, no interactive access, not external networking
+- helps reduce the attach surface for sensitive data processing apps
+	- cryptographic attestation - only authorized code can be running in your enclave
+	- only enclaves can access sensitive data (integrated with KMS)
+
+## Quick overview of other services
+
+### SES
+- simple email service
+- send emails using SMTP or AWS SDK
+- integrates with S3, SNS, Lambda
+
+### OpenSearch (successor to ElasticSearch)
+- allows you to search any field, even partial matches
+- commonly usd an a complement to another DB
+- two modes: managed cluster or serverless cluster
+- no native SQL support (can be enabled via a plugin)
+- ingestion from KDF, IoT, Lambda and CW logs (subscription filter)
+- security w/ Cognito, IAM, KMS encryption, TLS
+- comes w/ OpenSearch dashboards
+
+### Athena
+- serverless query service to analyze data stored in amazon s3
+- uses standard sql language to query the files (built on Presto)
+- $5.00 per TB of data scanned
+- commonly used w/Amazon Quicksight
+
+#### Performance improvement
+- use *columnar data* for cost-savings (less scan)
+	- apache parquet or ORC is recommended
+	- big perf improvement
+	- use glue to convert your data to Parquet or ORC
+- compress data for smaller retrievals
+- partition data sets in S3 for easy querying on virtual columns
+- use larger files (>128 MB) to minimize overhead
+
+#### Federated Query
+- allows you to run SQL queries across data stored in relational, non-relational, object and custom data source
+- uses data source connectors that run on Lambnda to run federated queries (CW logs, DynamoDB, RDS)
+- store the results back in S3
+
+### MSK (managed streaming for apache kafka)
+- alternative to kinesis
+- fully managed Kafka on AWS
+	- allows you to create, update, delete clusters
+	- MSK creates and manages Kafka broker nodes and Zookeeper nodes for you
+	- deploy the MSK cluster in your VPC (up to 3 for HA)
+	- automatic recovery from common Kafka failures
+	- data is stored on EBS volumes for as long as you require
+- MSK serverless
+	- run Kafka without managing capacity
+	- MSK automatically provisions resources and scales compute and storage
+
+#### Consumers for MSK
+- KDA for Flink
+- Glue (streaming ETL powered by apache spark streaming)
+- Lambda
+- Custom apps
+
+### ACM (AWS Certificate Manager)
+- easily provision, manage and deploy SSL/TLS certs
+- used to provide in-flight encryption for websites
+- supports private and public TLS
+- automatic TLS renewal
+- integrations with: 
+	- ELB
+	- CF
+	- APIs on API gateway
+
+#### Private CA
+- create a private CA, including root and subordinaries
+- can issue and deploy end-entity X.509 certs
+- certs are trusted only by your org
+- works with AWS service integrated with APM
+- use cases:
+	- encrypted TLS communication, cryptographically signing code
+	- authenticate users, computers, API endpoints, and IoT devices
+	- enterprise customers building a PKI (public key infrastructure)
+
+### Macie
+- fully managed data security and data privacy service that uses machine learning and pattern matching to discover and protect sensitive data in AWS
+- helps to identify PII and send events to eventbridge
+
+### AppConfig
+- configure, validate and deploy dynamic configs independent of your code deployments
+- feature flags, app tuning, allow/block listing
+- use with apps on EC2, lambda, ECS, EKS
+- gradually deploy config changes and rollback if issues occur
+- validate config changes before deploy using:
+	- json schema (syntax)
+	- lambda function (semantic)
+
+## Exam prep
+- 
