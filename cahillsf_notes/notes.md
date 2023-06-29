@@ -4078,3 +4078,7 @@
 - dynamodb secondary index types: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-indexes-general.html
 - ports 1024 - 65535 are for user apps
 - CodeDeploy lifecycle hookss: https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html#reference-appspec-file-structure-hooks-run-order
+
+
+
+
