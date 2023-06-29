@@ -1509,7 +1509,7 @@
 ## Copilot
 - CLI tool used to build, release and operate prod-ready containerized apps
 - run your apps on AppRunner, ECS, and Fargate
-- helps you focust on building apps rather than setting up infra
+- helps you focus on building apps rather than setting up infra
 - provisions all required infra for containerized apps (ECS, VPC, ELB, ECR)
 - automated dpeloyments using one command with CodePipeline
 - deploy to multiple environment
@@ -1545,7 +1545,7 @@
 - uses all the infra components but is a managed service
 	- automatically handles capacity provisioning, load balancing, scaling, app health monitoring, instance config
 	- just the app code is the responsibility of the developer
-- still gives you full control over the ocnfig
+- still gives you full control over the config
 - free service (you pay for the underlying deployed services)
 - there's an EB CLI that helps working with beanstalk esp for deployment pipelines
 
@@ -1576,7 +1576,7 @@
 	- small addtl cost
 	- additional batch is removed at the end
 	- always running at capacity (sometimes over)
-- Immutable - spins up new instances in a new ASG, deploys the version to these instances, then swaps all the instances when everythin is heathy
+- Immutable - spins up new instances in a new ASG, deploys the version to these instances, then swaps all the instances when everything is heathy
 	- high cost (double capacity)
 	- longest deployment
 	- new code is deployed to new instances on a temp ASG
@@ -1595,7 +1595,7 @@
 	- if there's a deployment failure, this triggers an automated rollback
 	- no app downtime
 	- new instances are migrated from the temporary to the original ASG
-	- old appp version is then terminated
+	- old app version is then terminated
 
 
 ### Deployment Process
@@ -1643,7 +1643,7 @@
 	- snapshot the RDB DB
 	- go to RDS console and protect the RDS 
 	- create a new EB, without RDS, point your APP to existing RDS
-	- perform a CNAME sway or Route 53 update after you confirm the new app is working
+	- perform a CNAME swapß or Route 53 update after you confirm the new app is working
 	- terminate the old env (RDS wont be deleted)
 	- delete the cloudformation stack (as the delete will fail because the RDS db is still around)
 
@@ -1654,19 +1654,19 @@
 	- each resource within the stack is tagged with an id so you can easily see how much a stack costs
 	- can estimate the costs of your resources using the CF template
 - in dev you can destroy and recreate resources overnight
-- automated geneation of diagram for your templates
+- automated generation of diagram for your templates
 - separation of concerns: create many stacks for many apps
 - to update a template we cant edit a previous one (have to reupload a new version of the template to AWS)
 - can manage templates in the UI (CF designer) OR managed the templates in yaml files and use the CLI to deploy
 
 ### Resources
 - resources are the core of your CF template
-- they represent the different AWS componenet that will be created and configured
+- they represent the different AWS components that will be created and configured
 - resources are declared and can reference each other
 - AWS figures out creation/updates/deletions of resources for us
 - over 224 types of resources
 - cannot have a "dynamic" amt of resources
-- almost every AWS service is supportes as resources,  for those that aren't you can work around using AWS Lambda Custom Resources
+- almost every AWS service is supported as a resource,  for those that aren't you can work around using AWS Lambda Custom Resources
 ### Parameters
 - way to provide inputs to your AWS CF template
 - some inputs cannot be determined ahead of time
@@ -1676,7 +1676,7 @@
 - pseudo parameters can be used at any time and are enabled by default (i.e. `AWS::AccountId`)
 
 ### Mappings
-- mappings are fixes variables within the CF template
+- mappings are fixed variables within the CF template
 - handy to differentiate bw different envs, regions, AMI types, etc
 - all values are hardcoded within the template
 - great for when you know in advance all of the values that are available
@@ -1685,7 +1685,7 @@
 
 ### Outputs
 - declares *optional* outputs values that we can import into other stacks
-- you can also view the outputs int he AWS console or in the CLI
+- you can also view the outputs in the AWS console or in the CLI
 - enables cross-stack collaboration 
 - you cannot delete a CF stack if its outputs are being used in another stack
 - cross-stack reference `!ImportValue` (`Fn::ImportValue`)
@@ -1728,8 +1728,8 @@
 - to update a nested stack, always update the parent (root)
 
 ### Cross stack 
-	- helpful when stacks have different lifecycles (use outputs export and import value)
-	- helpful when you need to pass export values to many stacks
+- helpful when stacks have different lifecycles (use outputs export and import value)
+- helpful when you need to pass export values to many stacks
 
 ### Stack Sets
 - create, update, or delete stacks across multiple accounts and regions with a single operation
@@ -1833,7 +1833,7 @@
 - Cross-Account Subscription filter
 	- in the sender account create a subscription filter
 	- in the recipient account:
-		- create a Destination Access Polict that allows the sender account `PutSubscriptionFilter` action on the subscription destination 
+		- create a Destination Access Policy that allows the sender account `PutSubscriptionFilter` action on the subscription destination 
 		- create a cross account IAM Role with a `PutRecord` permission in the Kinesis data stream, and ensure the sender account can assume this role
 
 #### CW Logs for EC2
@@ -1955,7 +1955,7 @@
 #### Sampling
 - sampling rules allow you to control the amount of data you record
 - by default, the SDK records the first request each second, and five percent sampling of any additional requests
-	- the one traced req/second is the *reservoir* which ensures that at least one trace/second is recorded as long as the service is serving request
+	- the one traced req/second is the *reservoir* which ensures that at least one trace/second is recorded as long as the service is serving requests
 - custom sampling rules allow you to create your own rules with the *reservoir* and *rate*
 	- can specify service, resource type, action, etc
 
@@ -2000,7 +2000,7 @@
 #### X-Ray <-> Beanstalk
 - beanstalk includes the x-ray daemon
 - can run the daemon by setting an option in the EB console or with a config file
-- give your insstance profile the correct IAM permissions so the daemon can function properly
+- give your instance profile the correct IAM permissions so the daemon can function properly
 - instrument the app code
 - Note: x-ray daemon is not provided for multicontainer docker
 
@@ -2008,8 +2008,8 @@
 
 ##### ECS on EC2
 - run the daemon as a container
-- x-ray container as "sidecar"
-	- one side car per app container
+- x-ray container as "daemon"
+	- one side car per ec2 instance
 
 ##### ECS on Fargate
 - x-ray container as "sidecar"
@@ -2020,7 +2020,7 @@
 
 ### CloudTrail
 - provides governance, compliance and audit for AWS
-- enabled by defaul
+- enabled by default
 - get a history of events / API calls made within your AWS account by
 	- console
 	- SDK
@@ -2054,11 +2054,11 @@
 - for longer storage send to s3 and use athena to analyze
 
 #### EventBridge Integration
-- intercept API calls to send to eventbridge to create an alerts
+- intercept API calls to send to eventbridge to create alerts
 
 ## Integration and Messaging: SQS, SNS & Kinesis
 - two patterns of app communication: sync and async
-- syncronous communication can be problemation if thre are suddent spikes in traffic
+- syncronous communication can be problematic if there are sudden spikes in traffic
 - better to decouple your applications:
 	- SQS: queue model
 	- SNS: pub/sub model
@@ -2079,10 +2079,10 @@
 - encryption:
 	- in-flight encryption using HTTPS API
 	- at-rest encryption using KMS keys
-	- client-side encryption if the client wants to perform encryption/decryption itsels
+	- client-side encryption if the client wants to perform encryption/decryption itself
 - access controls: IAM policies to regulate access to the SQS API
 - SQS Access policies
-	- useful for cros-account access to SQS queues 
+	- useful for cross-account access to SQS queues 
 	- useful for allowing other services (SNS, S3) to write to an SQS queue
 	- need `ReceiveMessage` to poll and `SendMessage` to put
 
@@ -2100,8 +2100,8 @@
 
 #### Message Visibility Timeout
 - after a message is polled by a consumer, it becomes invisible to other consumer (by default set to 30 seconds)
-- the message then has 30 secnods to be processed
-- after the visibility time is over, the message becomes "visibile" in SQS
+- the message then has 30 seconds to be processed
+- after the visibility time is over, the message becomes "visible" in SQS		
 - if a message is not processed within the visibility timeout, it will be processed twice
 - a consumer could call the `ChangeMessageVisibility` API to get more time
 - if timeout is too high and the consumer crashed, re-processing will take a lot of time
@@ -2109,11 +2109,11 @@
 
 #### Dead Letter Queue (DLQ)
 - if a consumer fails to process a message within the timeout, the message goes back to the queue
-- we can set a threshold of how many times a messagee can go back to the queu
+- we can set a threshold of how many times a message can go back to the queuea
 - after the `MaximumReceives` threshold is exceeded, the message goes into a DLQ
 	- useful for debugging
 - DLQ of a FIFO queue must be FIFO (DLQ of a standard queue must be std as well)
-- good to set a max retention policy in the DLQ of 14 days to process te messages before they expire
+- good to set a max retention policy in the DLQ of 14 days to process the messages before they expire
 
 ##### Redrive to Source
 - feature to help consume messages in the DLQ to understand what is wrong with them
@@ -2129,7 +2129,7 @@
 - decreases the number of API calls made to SQS while increasing efficiency and latency
 - wait time can be bw 1 sec to 20 secs
 - is preferred to short polling
-- can be enabled at the queu level or at the API level using `ReceiveMessageWaitTimeSeconds`
+- can be enabled at the queue level or at the API level using `ReceiveMessageWaitTimeSeconds`
 
 
 #### SQS Extended Client (Java Library)
@@ -2139,11 +2139,11 @@
 #### SQS API
 - `CreateQueue` Set `MessageRetentionPeriod`, `DeleteQueue`
 - `PurgeQueue`
-- `SendMessage`(`DelaySeconds`), , `DeleteMessage`
+- `SendMessage`(`DelaySeconds`), `DeleteMessage`
 - `ReceiveMessage` (`MaxNumberOfMessages`):default 1, max 10
 - `ReceiveMessageWaitTimeSeconds` = long polling
 - `ChangeMessageVisibility`: change the message timeout
-- batch APIs for SendMessage, DeleteMessage, ChangeMessageVisibility helps decrease your cost
+- batch APIs for `SendMessage`, `DeleteMessage`, `ChangeMessageVisibility` helps decrease your cost
 
 
 #### FIFO Queue
@@ -2227,7 +2227,7 @@
 - for the same combo of event type and prefix, you can only have one S3 event rule
 - if you want to send the same S3 event to many SQS queues, use fan-out
 
-#### Use case: SNS ot S3 through firehose
+#### Use case: SNS to S3 through firehose
 - SNS can send to Kinesis
 - Service -> SNS -> Kinesis Data Firehose (from here can go to S3 or any other KDF destination)
 
@@ -2237,9 +2237,9 @@
 
 #### Kinesis Data Streams
 - streams are provisioned with shards
-- meant for real-time big dta, analytics, and ETL
+- meant for real-time big data, analytics, and ETL
 - retention can be 1 day - 365 days
-- ability to reprocess (replay) dta
+- ability to reprocess (replay) data
 - once data is inserted in Kinesis, it cannot be deleted (immutability)
 - data that shares the same partition goes to the same shard (ordering)
 
@@ -2299,14 +2299,14 @@
 	- `SubscribeToShard` api
 	- multiple consuming applications for the same stream
 	- latency ~70 ms
-	- more expensis
+	- more expensive
 	- kinesis pushes data to consumers over HTTP/2
 	- soft limit of 5 consumer applications (KCL) per data stream
 
 ##### Lambda Consumers
 - supports classic and enhanced fan-out consumers
 - read records in batches
-- can configure batch size and batch windo
+- can configure batch size and batch window
 - if error occurs, lambda retries until success or data expiration
 - can process up to `10` batches per shard simultaneously
 
@@ -2321,7 +2321,7 @@
 	- KCL 2.x (supports shared and enhanced fan-out consumer)
 
 ##### Shard Splitting
-- used to cinrease the stream capacity
+- used to increase the stream capacity
 - used to divide a "hot shard"
 - old shard is closed and will be deleted once the data is expired
 - no automatic scaling in kinesis
@@ -2437,19 +2437,19 @@
 	- Cognito
 
 ### synchronous invocations (CLI, SDK, API Gateway, ALB)
-	- result is returned right away
-	- error handling must happen client side (retries, exponential backoff, etc)
-	- user invoked:
-		- ELB (ALB)
-		- API Gateway
-		- CF
-		- S3 batch
-	- service invoked:
-		- Cognito
-		- Step Functions
-		- Lex
-		- Alexa
-		- KDF
+- result is returned right away
+- error handling must happen client side (retries, exponential backoff, etc)
+- user invoked:
+	- ELB (ALB)
+	- API Gateway
+	- CF
+	- S3 batch
+- service invoked:
+	- Cognito
+	- Step Functions
+	- Lex
+	- Alexa
+	- KDF
 		
 ### asynchronous invocations
 - S3, SNS, CW events (eventbridge), CodeCommit, Codepipeline
@@ -2539,13 +2539,13 @@
 	- contains data from the invoking service
 	- Lambda runtime converts the event to an object (i.e. dict type in python)
 - Context:
-	- provides methods and properties that provide info about the invocation, function, and runtime enviroenmtn
+	- provides methods and properties that provide info about the invocation, function, and runtime environment
 	- passed to your function by lambda at runtime
 	- example: `aws_request_id`, `function_name`, etc
 
 ### Destinations
 - send result of an async invocation or a failed source mapper
-- async invocations can define destionations for both a successful or failed event
+- async invocations can define destinations for both a successful or failed event
 	- AWS recommends you use destinations over DLQ now for greater flexiblity
 - Source mapping: destinations only for discarded event batches
 - for SQS you can either use destinations or a DLQ from the source SQS queue
@@ -2553,7 +2553,7 @@
 ### Lambda Exec Role (IAM)
 - grants the lambda func perms to AWS services/resources
 - there are also managed policites available for Lambda
-- when you use an ~event source mapping~ to invoke your function, Lmabda uses an exec role to read event data
+- when you use an *event source mapping* to invoke your function, Lambda uses an exec role to read event data
 - best practice: create one lambda exec role per func
 
 ### Lambda Resource Based policies
@@ -2618,7 +2618,7 @@
 - author your functions in one region, then CF replicates to its locations
 - longer exec time than CF functions
 - adjustable resource allocation
-- your code depends on 3rd part libraries
+- your code depends on 3rd party libraries
 - network access to use external services for processing
 - file system access or access to the body of HTTP requests
 
@@ -2690,7 +2690,7 @@
 	- first request served has higher latency than the rest
 - provisioned concurrency:
 	- concurrency is allocated before the function is invoke (in advance)
-	- cold start necer happens and all invocations have low latency
+	- cold start never happens and all invocations have low latency
 	- app autoscaling can managed concurrency (schedule or target utilization)
 
 ### Dependencies
@@ -2703,7 +2703,7 @@
 - can use inline functions for smaller funcs (no dependencies)
 - otherwise store the Lambda zip in S3 and reference the S3 func in your CF
 - can launch Lambdas from S3 across multiple accounts
-	- launch the CF in the detination account
+	- launch the CF in the destination account
 	- add a bucket policy in the source account to allow principal (other AWS account IDs) to access the bucket
 	- add an execution role in the destination account to allow `Get` and `List` S3 buckets 
 
@@ -2725,7 +2725,7 @@
 ### Lambda Versions
 - `$LATEST` version is mutable
 - when the code is stable, you publish a version which becomes immutable
-- versions increate in number
+- versions increase in number
 - each version is assigned an ARN
 - version = code + configuration
 
@@ -2758,7 +2758,7 @@
 		- both principal's identity-based policy AND resource-based policy are evaluated
 		- principal must have `lambda:InvokeFunctionUrl` permissions
 		- same account = identity-based OR resource-based policy as allow
-		- cross account = identity-based OR resrouce-based policy as allow
+		- cross account = identity-based AND resource-based policy as allow
 - can be applied to any function alias or to `$LATEST`
 - create and configure using AWS Console or API
 - throttle your function using reserved concurrency
@@ -2781,7 +2781,7 @@
 	- concurrency executions: 1000 (can be increased)
 - Deployment:
 	- lambda func deployment size (compressed .zip): 50MB
-	- size of uncompressed deploymend (code + deps): 250 MB
+	- size of uncompressed deployment (code + deps): 250 MB
 	- can use the /tmp directory to load other files at startup
 
 ### Best Practices
@@ -2823,7 +2823,7 @@
 - made of `Tables`
 - each table has a `Primary Key`
 - each table can have an infinite number of items (=rows)
-- each item has attirbutes (can be added over time and `null` is ok)
+- each item has attributes (can be added over time and `null` is ok)
 - maximum size of an item is `400KB`
 - support data types:
 	- scalar types - string, number, binary, boolean, null
@@ -2838,7 +2838,7 @@
 	- e.g. "User_ID" for a users table
 - option 2: Partition Key + Sort Key (HASH + RANGE)
 	- combination must be unique for each item
-	- data is grouped by parition key
+	- data is grouped by partition key
 	- e.g. usersgames table, "User_ID" for partition key and "Game_ID" for sort key
 
 ### Read/Write Capacity Modes
@@ -2921,7 +2921,7 @@
 	- primary key can be `HASH` or `RANGE + HASH`
 	- eventually consistent read (default)
 	- option to use Strongly Consistent Reads (more RCU - might increase latency)
-	- `ProjectExpression` can be specified to retreieve only certain attributes
+	- `ProjectExpression` can be specified to retrieve only certain attributes
 - `Query`
 	- returns items based on:
 		- `KeyConditionExpression`
@@ -2938,7 +2938,7 @@
 - `Scan` the entire table and then filter out data (inefficient)
 	- returns up to 1MB data (use pagination to keep on reading)
 	- consumes a lot of RCU
-	- limit im pact using `Limit` or reduce the size of the result and pause
+	- limit impact using `Limit` or reduce the size of the result and pause
 	- for faster performance use `Parallel Scan`
 		- multiple workers can scan multiple data segments at the same time
 		- increases throughput and RCU consumed
@@ -2951,7 +2951,7 @@
 
 ### Batch Operations
 - allows you to save in latency by reducing the number of API calls
-- operations are done in paralletl for better efficiency
+- operations are done in parallel for better efficiency
 - part of a batch can fail, in which case we need to retry for the failed items
 - `BatchWriteItem`
 	- up to 25 `PutItem` or `DeleteItem` in one call
@@ -2967,7 +2967,6 @@
 - SQL-compatible query language for DynamoDB
 - allows you to `select`, `insert`, `update`, and `delete` using SQL
 - run queries across multiple DynamoDB tables
-- 
 
 ### Local Secondary Index (LSI)
 - alternative sort key for your table
@@ -3058,17 +3057,17 @@
 - Consumes 2x WCUs or RCUs
 	- dynamo performs 2 ops for every item (prepare & commit)
 - two ops:
-	- `	TransactGetItems` & `TransactWriteItems`
+	- `TransactGetItems` & `TransactWriteItems`
 - use cases: financial transactions, managing order, multiplayer games
 
 ### DynamoDB as a Session State Cache
 - common use case
-- vs ElasicAche
+- vs ElasiCache
 	- EC is in-mem
 	- dynamodb is serverless
 	- both are key/value stores
 - vs EFS
-	- EFS must be attached to EC2s as a netwpork drive
+	- EFS must be attached to EC2s as a network drive
 - vs EBS & Instance Store
 	- EBS and IS can only be used for local caching (not shared)
 - vs S3
@@ -3107,10 +3106,10 @@
 
 ## API Gateway
 - serverless offering that allows you to create REST APIs that are public/accesible
-- Lambda + Gatway = no infra
+- Lambda + Gateway = no infra
 - support for Websockets
 - supports versioning and env tagging
-- security (Authnetication and AUthorization)
+- security (Authnetication and Authorization)
 - create API keys to handle request throttling
 - swagger/open API import for rapid development
 - transform and validate requests/resonses
@@ -3176,7 +3175,7 @@
 	- setup data mapping using mapping templates for req/resp
 - AWS_PROXY (Lambda)
 	- incoming request from the client is input to the Lambda
-	- function is responsible for the lgic of req/rep
+	- function is responsible for the logic of req/rep
 	- no mapping template -> headers, query string params are passed as args to the lambda
 - HTTP_PROXY
 	- no mapping template
@@ -3212,7 +3211,7 @@
 - caches are defined per stage
 - possible to override cache settings per method
 - cache encryption options
-- capcity: bw `0.5GB` and `237GB`
+- capacity: bw `0.5GB` and `237GB`
 - cache is *expensive*
 - invalidation:
 	- ability to flush the entire cache (invalidate it) immediately
@@ -3286,7 +3285,7 @@
 
 ### HTTP v REST
 - HTTP APIs
-	- low-latency, cost-effective AWS lambda proxy, HTTP proxi apis and private integration (no data mapping)
+	- low-latency, cost-effective AWS lambda proxy, HTTP proxy apis and private integration (no data mapping)
 	- support OIDC and Oauth 2.0 authorization
 	- built in CORS support
 	- no usage plans/API keys
@@ -3354,7 +3353,7 @@
 - artifacts are store in an S3 bucket and passed to the next stage
 
 #### Troubleshooting
-- can use events for pipelin failures
+- can use events for pipeline failures
 - ensure the IAM service role has permissions to perform the actions
 - CloudTrail can be used to audit API calls
 
@@ -3362,7 +3361,7 @@
 - events *recommended* (i.e. new commits) trigger a codepipeline build
 	- codestart source connection can be used to trigger from GH events
 - webhooks
-	- you pipeline exposes a webhook which allows it to be triggered from custom scripts
+	- your pipeline exposes a webhook which allows it to be triggered from custom scripts
 - polling
 	- CP polls an event source for changes
 
@@ -3370,7 +3369,7 @@
 - Source: CodeCommit, S3 , bitbucket, GH
 - build instructions: file `buildspec.yml`
 	- set at the root of your code
-	- define envvars (can use secrets-manager or parametes-store)
+	- define envvars (can use secrets-manager or parameter-store)
 	- phases (install, pre_build, build, post_build)
 	- artifacts
 	- cache (dependencies)
@@ -3391,7 +3390,7 @@
 - Docker can be used to extend any env you like
 
 ### CodeDeploy
-- deployment service that automations app deployment
+- deployment service that automates app deployment
 - supports EC2, on-prem, lambda funcs, ECS services
 - automated rollback capability on failed deploys or CW alarms
 - gradual deployment controls
@@ -3463,7 +3462,7 @@
 	- principals are given all or nothing access to packages in repos
 
 #### CA <> EventBridge
-- event is creatd when a package is created, modified or deleted
+- event is created when a package is created, modified or deleted
 - can be used to invoke other AWS services, including CodePipeline
 
 #### Upstream Repos
@@ -3496,7 +3495,7 @@
 	- Profiler: visbility/recommendations about app performance during runtime
 		- identify and remove code inefficienies
 		- decrease compute costs
-		- provides heap summar and anomaly detection
+		- provides heap summary and anomaly detection
 
 #### Agent Config
 - `MaxStackDepth` - max depth of the stacks represented in the profiler
@@ -3535,7 +3534,7 @@
 - pre and post traffic hooks to validate deployment (before traffic shift starts and after it ends)
 - easy and automated rollback using CW alarms
 - `AutoPublishAlias`
-	- detects when new cod is being deployed
+	- detects when new code is being deployed
 	- creates and publishes an updated version of that function with the latest code
 	- points the alias to the updated version of the Lambda func
 - `DeploymentPreferece` = Canary, Linear, AllAtOnce
@@ -3614,7 +3613,7 @@
 
 ### Bootstrapping
 - necessary resources must be generated per Account/Region before you can deploy CDK apps into an env
-- CF Stack called `CDKToolkin` is created and contains:
+- CF Stack called `CDKToolkit` is created and contains:
 	- S3 bucket
 	- IAM Roles
 
@@ -3631,7 +3630,7 @@
 ## Cognito
 - give users an identity to interact with web/mobile app
 
-### cognito user pools (for authentication = idnetity vertification):
+### cognito user pools (for authentication = idenatity vertification):
 - sign in functionality for app users
 - integrate with API gateway and ALB
 	- ALB + Listeners & Rules allows for users to authenticate against CUP and access the target group
@@ -3717,7 +3716,7 @@
 #### Wait for Task Token
 - allows you to pause setep functions during a task until a task token is returned
 - task might wait for other AWS services, human approval, 3rd party integration, etc
-- append `.waitForTaskToken` to the `Resource` fiel to tell the step functions to wait for the task token
+- append `.waitForTaskToken` to the `Resource` field to tell the step functions to wait for the task token
 - task will pause until it received the token back with a `SendTaskSuccess` or `SendTaskFailure` API call
 
 #### Activity Tasks
@@ -3923,7 +3922,7 @@
 	- benefit of auditing w/ cloudtrail
 - single tenant
 
-### SSM Paramete Store
+### SSM Parameter Store
 - secure storage for configuration and secrets
 - option encryption using KMS
 - serverless, scalable, durable
@@ -4004,7 +4003,7 @@
 
 #### Federated Query
 - allows you to run SQL queries across data stored in relational, non-relational, object and custom data source
-- uses data source connectors that run on Lambnda to run federated queries (CW logs, DynamoDB, RDS)
+- uses data source connectors that run on Lambda to run federated queries (CW logs, DynamoDB, RDS)
 - store the results back in S3
 
 ### MSK (managed streaming for apache kafka)
@@ -4059,4 +4058,23 @@
 	- lambda function (semantic)
 
 ## Exam prep
-- 
+- review lambda + API Gateway auth stuff (https://docs.aws.amazon.com/apigateway/latest/developerguide/apigateway-control-access-to-api.html)
+- CF 
+	- keys: https://a.cl.ly/Jrueg8bJ 
+	- caching policies
+- You must create the Lambda function from the same account as the container registry in Amazon ECR - You can package your Lambda function code and dependencies as a container image, using tools such as the Docker CLI. You can then upload the image to your container registry hosted on Amazon Elastic Container Registry (Amazon ECR). Note that you must create the Lambda function from the same account as the container registry in Amazon ECR.
+- IAM with RDS: "IAM database authentication works with MariaDB, MySQL, and PostgreSQL." (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html)
+- S3 access question (https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/UsingWithRDS.IAMDBAuth.html): query string auth == presigned URL
+- IAM: permissions boundary comes up often
+- parameter store:  You cannot use a resource-based policy with a parameter in the Parameter Store. (secrets manager for cross-account access)
+- EBS stuff:
+	- https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/general-purpose.html#gp2-performance
+	- https://a.cl.ly/d5uDpnEy
+- what is the correct answer? https://a.cl.ly/DOuKo1by 
+- Elasticache config options (cluster mode, replication, etc)
+- encryption headers for S3:
+	- https://docs.aws.amazon.com/AmazonS3/latest/userguide/UsingKMSEncryption.html
+- invalide CF cache -- use a HEADER: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html#invalidate-method-caching
+- dynamodb secondary index types: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-indexes-general.html
+- ports 1024 - 65535 are for user apps
+- CodeDeploy lifecycle hookss: https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html#reference-appspec-file-structure-hooks-run-order
