@@ -4077,4 +4077,15 @@
 - invalide CF cache -- use a HEADER: https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-caching.html#invalidate-method-caching
 - dynamodb secondary index types: https://docs.aws.amazon.com/amazondynamodb/latest/developerguide/bp-indexes-general.html
 - ports 1024 - 65535 are for user apps
-- CodeDeploy lifecycle hookss: https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html#reference-appspec-file-structure-hooks-run-order
+- CodeDeploy lifecycle hooks: https://docs.aws.amazon.com/codedeploy/latest/userguide/reference-appspec-file-structure-hooks.html#reference-appspec-file-structure-hooks-run-order
+- A gateway endpoint is a gateway that you specify as a target for a route in your route table for traffic destined to a supported AWS service. The following AWS services are supported: `Amazon S3`, `DynamoDB`
+	- You should note that S3 now supports both gateway endpoints as well as the interface endpoints.
+- ELB troubleshooting: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/load-balancer-troubleshooting.html 
+- Macie Sensitive data findings: https://docs.aws.amazon.com/macie/latest/user/findings-types.html
+- how to migrate beanstalk env b/w AWS accounts: https://a.cl.ly/jkuRLl7G
+- encryption by default for EBS volumes is REGION-SPECIFIC
+- SQS has up to 2 week retention
+- `Export` for CF to export vars 
+- IAM can be used for SSL certs: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html
+- IAM access analyzer review: https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html
+- ASGs are region-based (can contain instances across AZs)
