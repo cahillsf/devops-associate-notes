@@ -4089,3 +4089,4 @@
 - IAM can be used for SSL certs: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html
 - IAM access analyzer review: https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html
 - ASGs are region-based (can contain instances across AZs)
+
