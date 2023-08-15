@@ -142,7 +142,7 @@
 - Delete on Termination attribute 
 	- determines whether the volume is deleted on instance termination
 	- by default Root volume is deleted on termination
-	- any other attached instances are ~not~ terminated on deletion by default
+	- any other attached instances are *not* terminated on deletion by default
 - snapshots:
 	- backup your volume at a point in time
 	- not necessary to detach to snapshot, but recomended
@@ -279,7 +279,7 @@
 - spread load across multiple downstream services
 - expose a single point of access (DNS) to your app
 - allows you to seamlessly handle failures of downstream instances
-- accomplished helath checks to your instances
+- accomplished health checks to your instances
 - provide SSL termination for website
 - enforce stickiness with cookies
 - HA across zones
@@ -313,7 +313,7 @@
 - support routing tables to different target groups
 	- routing based on URL path
 	- routing based on HOSTNAME in url
-	- roubting based on QueryString or Headers
+	- routing based on QueryString or Headers
 - great fit for microservices and container-based apps
 - has a port mapping feature to redirect to a dynamic port in ECS
 
@@ -357,7 +357,7 @@
 #### Sticky Sessions (Session Affinity)
 - it is possible to implement stickiness so that the same client is always redirected to the same instance behind a load balancer
 - works for CLB, ALB, NLB
-- the cookie used for stickiness has an expirate timestamp that your can control
+- the cookie used for stickiness has an expiration timestamp that you can control
 - use case: make sure the user doesn't lose session data
 - enabling stickiness may bring imbalance to the load over the backend ec2 instances
 - cookie names:
@@ -1190,7 +1190,7 @@
 ### API Limits
 - API Rate limits
 - for intermittent errors: implement exponential backoff (built in w/ the AWS SDK)
-	- to self-implement, use retires on 5xx server errors
+	- to self-implement, use retries on 5xx server errors
 	- do not implement on 4xx errors
 - for consistent errors: request an API throttling limit increase
 
@@ -1304,7 +1304,7 @@
 
 #### Cache Invalidations
 - in case you update the backend origin, CF doesn't know and will only get the refreshed content after the TTL has expired
-- you can force an entire or partial cache refresh (bypassing the TTL) by performing a CF invlaidation
+- you can force an entire or partial cache refresh (bypassing the TTL) by performing a CF invalidation
 - you can invalidate all files (`/*`) or a specified path (`/images/*`)
 
 #### Cache Behaviors
@@ -1540,7 +1540,7 @@
 	- FSx for Lustre
 	- FSx for NetApp ONTAP
 
-## Elastic Beanstalk
+## Elastic Beanstalk (todo)
 - developer centric view of deploying an app on AWS
 - uses all the infra components but is a managed service
 	- automatically handles capacity provisioning, load balancing, scaling, app health monitoring, instance config
@@ -2301,7 +2301,7 @@
 	- latency ~70 ms
 	- more expensive
 	- kinesis pushes data to consumers over HTTP/2
-	- soft limit of 5 consumer applications (KCL) per data stream
+	- soft limit of 5 consumer applications (KCL 2.x) per data stream
 
 ##### Lambda Consumers
 - supports classic and enhanced fan-out consumers
@@ -4070,6 +4070,7 @@
 - EBS stuff:
 	- https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/general-purpose.html#gp2-performance
 	- https://a.cl.ly/d5uDpnEy
+	- The maximum ratio of provisioned IOPS to requested volume size (in GiB) is 50:1. So, for a 200 GiB volume size, max IOPS possible is 200*50 = 10000 IOPS. (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/provisioned-iops.html)
 - what is the correct answer? https://a.cl.ly/DOuKo1by 
 - Elasticache config options (cluster mode, replication, etc)
 - encryption headers for S3:
@@ -4089,5 +4090,10 @@
 - IAM can be used for SSL certs: https://docs.aws.amazon.com/IAM/latest/UserGuide/id_credentials_server-certs.html
 - IAM access analyzer review: https://docs.aws.amazon.com/IAM/latest/UserGuide/what-is-access-analyzer.html
 - ASGs are region-based (can contain instances across AZs)
-
+- reserved instances (https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/reserved-instances-scope.html)  - only Zonal reserved instances provide capacity reservations
+- IAM policy evaluation: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_evaluation-logic.html 
+- `ec2 monitor-instances` - enable detailed monitoring for running instances
+- The Lambda function invocation is asynchronous - When an asynchronous invocation event exceeds the maximum age or fails all retry attempts, Lambda discards it. Or sends it to dead-letter queue if you have configured one.
+- lambda does support websocket
+- CodeBuild -> cache dependencies in S3 for faster build times
 
